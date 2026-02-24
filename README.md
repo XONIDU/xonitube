@@ -1,4 +1,3 @@
-```markdown
 # 🎬 XONITUBE by Darian Alberto Camacho Salas
 
 **Advertencia:** Este código tiene únicamente fines educativos y de uso personal. Está diseñado para enseñar principios de automatización de búsquedas y reproducción de contenido multimedia desde la terminal. No debe utilizarse para infringir los términos de servicio de YouTube o para uso comercial sin las autorizaciones correspondientes.
