@@ -1,9 +1,18 @@
-#XoniTube v4.2.0 - Buscador de YouTube
-#Creado por Darian Alberto Camacho Salas
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+XoniTube v4.2.0 - Buscador de YouTube
+Creado por Darian Alberto Camacho Salas
+Con metodo anti-bloqueo por defecto y autolimpieza
+"""
 
 import subprocess
 import sys
 import os
+import tempfile
+import atexit
+import signal
 
 # ============================================================================
 # CONFIGURACION
@@ -11,9 +20,33 @@ import os
 
 REPRODUCTOR = "mpv"
 USAR_YTDLP_POR_DEFECTO = True  # Usar metodo anti-bloqueo siempre
+ARCHIVOS_TEMP = []  # Lista para rastrear archivos temporales
 
 # ============================================================================
-# FUNCIONES
+# FUNCIONES DE LIMPIEZA
+# ============================================================================
+
+def limpiar_archivos_temp():
+    """Elimina todos los archivos temporales creados"""
+    for archivo in ARCHIVOS_TEMP:
+        try:
+            if os.path.exists(archivo):
+                os.unlink(archivo)
+        except:
+            pass
+
+def signal_handler(sig, frame):
+    """Maneja señales como Ctrl+C"""
+    limpiar_archivos_temp()
+    print("\n\nHasta luego!")
+    sys.exit(0)
+
+# Registrar limpieza al salir
+atexit.register(limpiar_archivos_temp)
+signal.signal(signal.SIGINT, signal_handler)
+
+# ============================================================================
+# FUNCIONES PRINCIPALES
 # ============================================================================
 
 def limpiar_pantalla():
@@ -110,7 +143,7 @@ def preguntar_calidad():
         print("Opcion invalida")
 
 def reproducir_video(link, titulo, formato_calidad):
-    """Reproduce un video con metodo anti-bloqueo por defecto"""
+    """Reproduce un video con metodo anti-bloqueo y autolimpieza"""
     calidad_texto = {
         "worst": "Peor calidad",
         "worst[height<=144]": "144p",
@@ -123,7 +156,7 @@ def reproducir_video(link, titulo, formato_calidad):
     
     print(f"\nReproduciendo: {titulo[:50]}...")
     print(f"Calidad: {calidad_texto}")
-    print("Metodo: anti-bloqueo (yt-dlp + mpv)")
+    print("Metodo: anti-bloqueo (streaming sin guardar archivos)")
     print("\nCONTROLES MPV:")
     print("  ← →  : Retroceder / Avanzar 5 segundos")
     print("  ↑ ↓  : Subir / Bajar volumen")
@@ -132,29 +165,58 @@ def reproducir_video(link, titulo, formato_calidad):
     print("  Ctrl+C: Volver al menu\n")
     
     try:
-        # Usar metodo anti-bloqueo (opcion 8) por defecto
+        # Usar pipe - NO crea archivos en disco
         cmd_ytdlp = [
             "yt-dlp",
             "-f", formato_calidad,
-            "-o", "-",
+            "-o", "-",  # Salida a stdout (pipe, no archivo)
+            "--no-part",  # No usar archivos parciales
+            "--no-mtime",  # No modificar tiempos
             link
         ]
+        
         cmd_mpv = [
             REPRODUCTOR,
             "--cache=yes",
             "--cache-secs=30",
             "--demuxer-max-bytes=150M",
             "--demuxer-readahead-secs=20",
-            "-"
+            "--no-input-default-bindings",
+            "--input-conf=/dev/null",  # Evitar archivos de config
+            "-"  # Entrada desde stdin
         ]
         
-        p1 = subprocess.Popen(cmd_ytdlp, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-        p2 = subprocess.Popen(cmd_mpv, stdin=p1.stdout)
-        p2.wait()
+        # Ejecutar sin crear archivos temporales
+        p1 = subprocess.Popen(
+            cmd_ytdlp, 
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL
+        )
+        
+        p2 = subprocess.Popen(
+            cmd_mpv, 
+            stdin=p1.stdout,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+        
+        p2.wait()  # Esperar a que termine la reproduccion
+        
+        # Asegurar que el pipe se cierre correctamente
+        if p1.stdout:
+            p1.stdout.close()
+        
         return True
         
     except KeyboardInterrupt:
         print("\n\nReproduccion detenida")
+        # Terminar procesos hijos si existen
+        try:
+            p1.terminate()
+            p2.terminate()
+        except:
+            pass
         return True
     except Exception as e:
         print(f"Error: {e}")
@@ -203,6 +265,7 @@ def main():
     print("="*70)
     print("\nINFORMACION:")
     print("  • Metodo anti-bloqueo activado por defecto")
+    print("  • Streaming directo - No guarda archivos en disco")
     print("  • Usa ← → para retroceder/avanzar durante reproduccion")
     print("  • Space para pausar")
     
@@ -253,9 +316,13 @@ def main():
         except KeyboardInterrupt:
             print("\n\nHasta luego!")
             break
+        except Exception as e:
+            print(f"\nError inesperado: {e}")
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"\nError: {e}")
+        print(f"\nError fatal: {e}")
+        limpiar_archivos_temp()
+        sys.exit(1)
