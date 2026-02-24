@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-"""
-XoniTube v1.0 - Buscador interactivo de YouTube para terminal
-Creado por Darian Alberto Camacho Salas
-Para Asus Eee PC con 1GB de RAM
-"""
+#XoniTube v1.0 - Buscador interactivo de YouTube para terminal
+#Creado por Darian Alberto Camacho Salas
 
 import curses
 import subprocess
@@ -82,7 +76,7 @@ def mostrar_bienvenida(stdscr):
     stdscr.addstr(y_titulo + 2, x_cred, creditos)
     
     # Subtitulo
-    subtitulo = "Buscador de YouTube para tu Eee PC"
+    subtitulo = "Buscador de YouTube para PC"
     x_sub = width // 2 - len(subtitulo) // 2
     stdscr.addstr(y_titulo + 4, x_sub, subtitulo)
     
