@@ -24,4 +24,4 @@ yt-dlp --version
 mpv --version
 
 # Ejecucion:
-python start.py
+python xonitube.py
