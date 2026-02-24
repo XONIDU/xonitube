@@ -1,27 +1,27 @@
 # Somos XONINDU
 # Creador: Darian Alberto Camacho Salas
 
-# XoniTube - Buscador de YouTube para terminal
-# Repositorio: https://github.com/xonidu
+# XoniTube v4.2.0 - Buscador de YouTube para terminal
+# Metodo anti-bloqueo por defecto
 
 # Arch Linux
-sudo pacman -S python-pip mpv
-pip install youtube-search-python --break-system-packages
-# Nota: En Linux, curses ya viene incluido con Python
+sudo pacman -S python python-pip mpv yt-dlp
+# No se necesitan paquetes adicionales de pip
 
 # Ubuntu y derivados (Debian, Linux Mint, etc.)
 sudo apt update
-sudo apt install python3 python3-pip mpv -y
-pip3 install youtube-search-python --break-system-packages
-# Nota: En Linux, curses ya viene incluido con Python
+sudo apt install python3 python3-pip mpv yt-dlp -y
+# No se necesitan paquetes adicionales de pip
 
-# Windows (con Python instalado)
-pip install youtube-search-python windows-curses
-# windows-curses es necesario SOLO en Windows
-# Descargar e instalar mpv desde: https://mpv.io/installation/
+# Windows
+# Instalar Python desde: https://www.python.org/downloads/
+pip install yt-dlp
+# Instalar mpv desde: https://mpv.io/installation/
+# Nota: En Windows, el metodo anti-bloqueo puede requerir configuracion adicional
 
 # Verificar instalacion
-python3 -c "import curses; import youtubesearchpython; print('Todo correcto')"
+yt-dlp --version
+mpv --version
 
 # Ejecucion:
-python3 start.py
+python start.py
