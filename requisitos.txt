@@ -3,18 +3,25 @@
 
 # XoniTube - Buscador de YouTube para terminal
 # Repositorio: https://github.com/xonidu
+
 # Arch Linux
 sudo pacman -S python-pip mpv
-pip install youtube-search-python windows-curses --break-system-packages
+pip install youtube-search-python --break-system-packages
+# Nota: En Linux, curses ya viene incluido con Python
 
 # Ubuntu y derivados (Debian, Linux Mint, etc.)
 sudo apt update
 sudo apt install python3 python3-pip mpv -y
-pip3 install youtube-search-python windows-curses --break-system-packages
+pip3 install youtube-search-python --break-system-packages
+# Nota: En Linux, curses ya viene incluido con Python
 
 # Windows (con Python instalado)
 pip install youtube-search-python windows-curses
+# windows-curses es necesario SOLO en Windows
 # Descargar e instalar mpv desde: https://mpv.io/installation/
 
+# Verificar instalacion
+python3 -c "import curses; import youtubesearchpython; print('Todo correcto')"
+
 # Ejecucion:
-python3 xonitube.py
+python3 start.py
