@@ -1,24 +1,16 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-"""
-XoniTube v4.2.2 - Buscador interactivo de YouTube
-Creado por Darian Alberto Camacho Salas
-"""
+#XoniTube v4.2.0 - Buscador de YouTube
+#Creado por Darian Alberto Camacho Salas
 
 import subprocess
 import sys
 import os
-import json
-import time
 
 # ============================================================================
 # CONFIGURACION
 # ============================================================================
 
-CALIDAD_VIDEO = "worst"
 REPRODUCTOR = "mpv"
-TIMEOUT = 15  # segundos
+USAR_YTDLP_POR_DEFECTO = True  # Usar metodo anti-bloqueo siempre
 
 # ============================================================================
 # FUNCIONES
@@ -32,129 +24,169 @@ def buscar_videos(termino, cantidad):
     """
     Busca videos en YouTube
     """
-    print(f"\nBuscando {cantidad} videos: '{termino}'...")
-    print("(esto puede tomar unos segundos)")
+    print(f"\nBuscando: '{termino}'...")
     
     try:
         cmd = [
             "yt-dlp",
             "--no-warnings",
-            "--no-playlist",
-            "--print-json",
-            f"ytsearch{cantidad}:{termino}",
-            "--sleep-interval", "0",
-            "--max-sleep-interval", "0",
-            "--geo-bypass",
-            "--force-ipv4"
+            "--get-title",
+            "--get-id",
+            f"ytsearch{cantidad}:{termino}"
         ]
         
-        resultado = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT)
+        resultado = subprocess.run(cmd, capture_output=True, text=True)
         
         if resultado.returncode != 0:
-            print(f"Error en yt-dlp: {resultado.stderr[:100]}")
+            print(f"Error en busqueda")
             return None
         
+        lineas = resultado.stdout.strip().split('\n')
         videos = []
-        for i, linea in enumerate(resultado.stdout.strip().split('\n'), 1):
-            if linea:
-                try:
-                    data = json.loads(linea)
-                    videos.append({
-                        'numero': i,
-                        'titulo': data.get('title', 'Sin titulo'),
-                        'duracion': data.get('duration', 'N/A'),
-                        'canal': data.get('channel', 'Desconocido'),
-                        'link': f"https://youtube.com/watch?v={data.get('id', '')}"
-                    })
-                except json.JSONDecodeError:
-                    continue
         
-        if not videos:
-            print("No se encontraron resultados")
-            return None
-            
-        return videos
+        for i in range(0, len(lineas), 2):
+            if i + 1 < len(lineas):
+                titulo = lineas[i].strip()
+                video_id = lineas[i+1].strip()
+                
+                videos.append({
+                    'numero': len(videos) + 1,
+                    'titulo': titulo,
+                    'link': f"https://youtube.com/watch?v={video_id}"
+                })
         
-    except subprocess.TimeoutExpired:
-        print(f"La busqueda tardo mas de {TIMEOUT} segundos")
-        return None
+        return videos if videos else None
+        
     except Exception as e:
-        print(f"Error inesperado: {e}")
+        print(f"Error: {e}")
         return None
 
 def mostrar_videos(videos):
-    """Muestra la lista de videos numerada"""
-    print("\n" + "="*80)
-    print("RESULTADOS".center(80))
-    print("="*80)
+    """Muestra la lista de videos"""
+    print("\n" + "="*70)
+    print("RESULTADOS".center(70))
+    print("="*70)
     
     for v in videos:
         print(f"\n{v['numero']}. {v['titulo']}")
-        print(f"   Canal: {v['canal']} | Duracion: {v['duracion']}s")
-    print("\n" + "="*80)
+    print("\n" + "="*70)
 
-def reproducir_video(link, titulo):
-    """Reproduce un video"""
-    print(f"\nReproduciendo: {titulo[:60]}...")
-    print("Presiona Ctrl+C para volver al menu\n")
+def mostrar_calidades():
+    """Muestra las opciones de calidad"""
+    print("\nCALIDADES DISPONIBLES:")
+    print("  1. Peor calidad (mas rapido)")
+    print("  2. 144p")
+    print("  3. 240p")
+    print("  4. 360p")
+    print("  5. 480p")
+    print("  6. Mejor calidad (mas lento)")
+    print("  7. Solo audio")
+
+def obtener_formato_calidad(opcion):
+    """Convierte opcion a formato yt-dlp"""
+    formatos = {
+        '1': "worst",
+        '2': "worst[height<=144]",
+        '3': "worst[height<=240]",
+        '4': "worst[height<=360]",
+        '5': "worst[height<=480]",
+        '6': "best",
+        '7': "bestaudio"
+    }
+    return formatos.get(opcion, "worst")
+
+def preguntar_calidad():
+    """Pregunta que calidad usar"""
+    while True:
+        mostrar_calidades()
+        opcion = input("\nElige calidad (1-7, Enter=1): ").strip()
+        
+        if opcion == "":
+            return "worst"
+        
+        if opcion in ['1','2','3','4','5','6','7']:
+            return obtener_formato_calidad(opcion)
+        
+        print("Opcion invalida")
+
+def reproducir_video(link, titulo, formato_calidad):
+    """Reproduce un video con metodo anti-bloqueo por defecto"""
+    calidad_texto = {
+        "worst": "Peor calidad",
+        "worst[height<=144]": "144p",
+        "worst[height<=240]": "240p",
+        "worst[height<=360]": "360p",
+        "worst[height<=480]": "480p",
+        "best": "Mejor calidad",
+        "bestaudio": "Solo audio"
+    }.get(formato_calidad, formato_calidad)
+    
+    print(f"\nReproduciendo: {titulo[:50]}...")
+    print(f"Calidad: {calidad_texto}")
+    print("Metodo: anti-bloqueo (yt-dlp + mpv)")
+    print("\nCONTROLES MPV:")
+    print("  ← →  : Retroceder / Avanzar 5 segundos")
+    print("  ↑ ↓  : Subir / Bajar volumen")
+    print("  Space: Pausa/Reanudar")
+    print("  q    : Salir de la reproduccion")
+    print("  Ctrl+C: Volver al menu\n")
     
     try:
-        cmd = [REPRODUCTOR, "--ytdl-format=" + CALIDAD_VIDEO, "--no-video", link]
-        subprocess.run(cmd)
+        # Usar metodo anti-bloqueo (opcion 8) por defecto
+        cmd_ytdlp = [
+            "yt-dlp",
+            "-f", formato_calidad,
+            "-o", "-",
+            link
+        ]
+        cmd_mpv = [
+            REPRODUCTOR,
+            "--cache=yes",
+            "--cache-secs=30",
+            "--demuxer-max-bytes=150M",
+            "--demuxer-readahead-secs=20",
+            "-"
+        ]
+        
+        p1 = subprocess.Popen(cmd_ytdlp, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        p2 = subprocess.Popen(cmd_mpv, stdin=p1.stdout)
+        p2.wait()
         return True
+        
     except KeyboardInterrupt:
         print("\n\nReproduccion detenida")
         return True
     except Exception as e:
-        print(f"Error al reproducir: {e}")
+        print(f"Error: {e}")
         return False
 
 def preguntar_cantidad():
-    """Pregunta cuantos resultados mostrar"""
+    """Pregunta cuantos resultados"""
     while True:
         try:
-            cant = input("\nCuantos resultados quieres ver? (1-15, Enter para 5): ").strip()
+            cant = input("\nCuantos resultados? (1-10, Enter=5): ").strip()
             if cant == "":
                 return 5
             cant = int(cant)
-            if 1 <= cant <= 15:
+            if 1 <= cant <= 10:
                 return cant
-            else:
-                print("Por favor ingresa un numero entre 1 y 15")
+            print("Numero entre 1 y 10")
         except ValueError:
-            print("Por favor ingresa un numero valido")
+            print("Numero invalido")
 
 def preguntar_video(max_num):
     """Pregunta que video reproducir"""
     while True:
         try:
-            opcion = input(f"\nQue video quieres reproducir? (1-{max_num}, Enter para volver): ").strip()
+            opcion = input(f"\nQue video? (1-{max_num}, Enter=menu): ").strip()
             if opcion == "":
                 return None
             num = int(opcion)
             if 1 <= num <= max_num:
                 return num
-            else:
-                print(f"Por favor ingresa un numero entre 1 y {max_num}")
+            print(f"Numero entre 1 y {max_num}")
         except ValueError:
-            print("Por favor ingresa un numero valido")
-
-def verificar_ytdlp():
-    """Verifica que yt-dlp este instalado"""
-    try:
-        result = subprocess.run(["yt-dlp", "--version"], capture_output=True, text=True)
-        if result.returncode == 0:
-            print(f"yt-dlp version: {result.stdout.strip()}")
-            return True
-        else:
-            print("yt-dlp no responde correctamente")
-            return False
-    except FileNotFoundError:
-        print("yt-dlp no esta instalado")
-        print("Instalalo con: sudo pacman -S yt-dlp (Arch)")
-        print("o: sudo apt install yt-dlp (Ubuntu/Debian)")
-        print("o: pip install yt-dlp")
-        return False
+            print("Numero invalido")
 
 # ============================================================================
 # PROGRAMA PRINCIPAL
@@ -164,77 +196,66 @@ def main():
     """Funcion principal"""
     
     limpiar_pantalla()
-    print("="*80)
-    print("XONITUBE v4.2.2".center(80))
-    print("="*80)
-    print("Creado por Darian Alberto Camacho Salas".center(80))
-    print("="*80)
-    
-    # Verificar yt-dlp
-    verificar_ytdlp()
-    
-    print("\nINSTRUCCIONES:")
-    print("  • Escribe SOLO lo que quieres buscar (sin la palabra 'buscar')")
-    print("  • Ejemplo: sub_urban, kendrick lamar, musica relajante")
-    print("  • Escribe 'salir' para terminar")
-    print("-"*80)
+    print("="*70)
+    print("XONITUBE v4.2.0".center(70))
+    print("="*70)
+    print("Creado por Darian Alberto Camacho Salas".center(70))
+    print("="*70)
+    print("\nINFORMACION:")
+    print("  • Metodo anti-bloqueo activado por defecto")
+    print("  • Usa ← → para retroceder/avanzar durante reproduccion")
+    print("  • Space para pausar")
     
     while True:
         try:
-            # PASO 1: Preguntar busqueda
-            busqueda = input("\nQue quieres buscar? → ").strip()
+            # Busqueda
+            busqueda = input("\nBuscar? → ").strip()
             
-            if busqueda.lower() in ['salir', 'exit', 'q', 'quit']:
+            if busqueda.lower() in ['salir', 'exit', 'q']:
                 print("\nHasta luego!")
                 break
             
             if not busqueda:
                 continue
             
-            # PASO 2: Preguntar cantidad
+            # Cantidad de resultados
             cantidad = preguntar_cantidad()
             
-            # PASO 3: Buscar videos
+            # Buscar videos
             videos = buscar_videos(busqueda, cantidad)
             
             if not videos:
-                print("\nNo se encontraron resultados. Intenta con otra busqueda.")
+                print("\nNo hay resultados")
                 continue
             
-            # PASO 4: Mostrar resultados
+            # Mostrar resultados
             mostrar_videos(videos)
             
-            # PASO 5: Preguntar cual reproducir
+            # Reproducir
             while True:
                 num = preguntar_video(len(videos))
                 
                 if num is None:
-                    print("\nVolviendo al menu principal...")
                     break
                 
-                # PASO 6: Reproducir video seleccionado
+                # Preguntar calidad
+                formato = preguntar_calidad()
+                
+                # Reproducir con metodo anti-bloqueo
                 video = videos[num-1]
-                reproducir_video(video['link'], video['titulo'])
+                reproducir_video(video['link'], video['titulo'], formato)
                 
-                # PASO 7: Preguntar si quiere otro del mismo resultado
-                otro = input("\nQuieres reproducir otro video de esta busqueda? (s/n): ").strip().lower()
-                if otro not in ['s', 'si', 'y', 'yes', '']:
+                # Preguntar si otro
+                otro = input("\nOtro video de esta busqueda? (s/n): ").strip().lower()
+                if otro not in ['s', 'si', 'y']:
                     break
-            
+                    
         except KeyboardInterrupt:
             print("\n\nHasta luego!")
             break
-        except Exception as e:
-            print(f"\nError inesperado: {e}")
-            print("Continuando...")
-
-# ============================================================================
-# PUNTO DE ENTRADA
-# ============================================================================
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"\nError fatal: {e}")
-        sys.exit(1)
+        print(f"\nError: {e}")
