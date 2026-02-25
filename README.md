@@ -40,7 +40,7 @@ yt-dlp --version
 mpv --version
 
 # Ejecutar
-python xonitube.py
+python start.py
 ```
 
 ---
