@@ -41,6 +41,10 @@ mpv --version
 
 # Ejecutar
 python start.py
+
+#o
+
+python3 start.py
 ```
 
 ---
