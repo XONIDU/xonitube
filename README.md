@@ -44,8 +44,8 @@ mpv --version
 Clona el repositorio desde GitHub:
 
 ```bash
-git clone https://github.com/XONIDU/xonispam.git
-cd xonispam
+git clone https://github.com/XONIDU/xonitube.git
+cd xonitube
 ```
 
 # Ejecutar
