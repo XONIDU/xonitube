@@ -39,6 +39,15 @@ pip install yt-dlp
 yt-dlp --version
 mpv --version
 
+## 📥 Instalación
+
+Clona el repositorio desde GitHub:
+
+```bash
+git clone https://github.com/XONIDU/xonispam.git
+cd xonispam
+```
+
 # Ejecutar
 python start.py
 
