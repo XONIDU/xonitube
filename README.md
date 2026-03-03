@@ -1,4 +1,4 @@
-#XONITUBE by Darian Alberto Camacho Salas
+## XONITUBE by Darian Alberto Camacho Salas
 
 Reproductor de videos en línea para PC de gama baja (Asus Eee PC con 1GB RAM)
 
@@ -95,4 +95,3 @@ Elige calidad (1-7, Enter=1): 3
 ---
 
 **Licencia**: Uso educativo y personal. No comercial. Respeta términos de YouTube.
-```
