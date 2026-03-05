@@ -1,6 +1,8 @@
-# 🎬 XONITUBE by Darian Alberto Camacho Salas
+# 🎬 XONITUBE v4.2.0
 
-Reproductor de videos en línea para PC de gama baja (Asus Eee PC con 1GB RAM)
+##  Darian Alberto Camacho Salas
+
+Reproductor de videos en línea para PC de gama baja
 
 ---
 
@@ -117,3 +119,4 @@ Si tienes preguntas sobre los conceptos de programación, automatización o mejo
 - 📘 **Facebook**: xonidu
 - 📧 **Email**: xonidu@gmail.com
 
+## SOMOS XONIDU
