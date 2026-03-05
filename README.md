@@ -1,6 +1,6 @@
 # 🎬 XONITUBE v4.2.0
 
-##  Darian Alberto Camacho Salas
+## by Darian Alberto Camacho Salas
 
 Reproductor de videos en línea para PC de gama baja
 
