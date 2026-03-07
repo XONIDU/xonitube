@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-XoniTube v5.1 - Buscador de YouTube con visualizacion forzada
+XoniTube v5.2 - Buscador de YouTube con ventana siempre visible
 Creado por Darian Alberto Camacho Salas
-Para xoniant32 - Garantiza que el video SE VEA.
-Version sin emojis
+Para xoniant32 - Ventana siempre encima y en grande
 """
 
 import subprocess
@@ -76,7 +75,7 @@ def mostrar_resultados(videos):
 
 def reproducir(url, calidad, nombre_calidad):
     """
-    Reproduce el video usando mpv con backend fijo x11
+    Reproduce el video usando mpv con ventana siempre encima y en grande
     """
     print(f"\nReproduciendo en {nombre_calidad} (backend {BACKEND_VIDEO})...")
     print("Presiona Ctrl+C para volver al menu\n")
@@ -84,6 +83,7 @@ def reproducir(url, calidad, nombre_calidad):
     print("  ← → : Retroceder/Avanzar 5s")
     print("  Space : Pausa")
     print("  ↑ ↓ : Volumen")
+    print("  f : Pantalla completa")
     print("  q : Salir")
     print("-"*50)
 
@@ -97,7 +97,7 @@ def reproducir(url, calidad, nombre_calidad):
             url
         ]
 
-        # Comando mpv con backend forzado y opciones de ventana
+        # Comando mpv con opciones para ventana siempre encima y en grande
         cmd_mpv = [
             REPRODUCTOR,
             f"--vo={BACKEND_VIDEO}",
@@ -107,6 +107,10 @@ def reproducir(url, calidad, nombre_calidad):
             "--x11-bypass-compositor=yes",  # Evita problemas con compositores
             "--window-minimized=no",         # Asegura que la ventana no se minimice
             "--keepaspect-window",
+            "--geometry=100%x100%",          # Ocupa toda la pantalla
+            "--ontop",                        # Siempre encima de todo
+            "--ontop-level=window",           # Nivel de prioridad
+            "--focus-on-open=yes",            # Enfocar al abrir
             "--really-quiet",
             "-"
         ]
@@ -186,14 +190,15 @@ def main():
     """Flujo principal del programa"""
     limpiar_pantalla()
     print("="*70)
-    print("XONITUBE v5.1".center(70))
+    print("XONITUBE v5.2".center(70))
     print("="*70)
     print("Creado por Darian Alberto Camacho Salas".center(70))
     print("="*70)
     print("\nINSTRUCCIONES:")
     print("  • Escribe lo que quieres buscar (ej: 'kendrick lamar')")
     print("  • Responde las preguntas para elegir cantidad y calidad")
-    print("  • Durante la reproduccion usa ← → Space ↑ ↓ q")
+    print("  • El video se abrira en pantalla completa y siempre visible")
+    print("  • Durante la reproduccion usa ← → Space ↑ ↓ f q")
     print("  • Escribe 'salir' para terminar")
     print("="*70)
 
