@@ -1,8 +1,6 @@
-# 🎬 XONITUBE v4.2.0
+# 🎬 XONITUBE by Darian Alberto Camacho Salas
 
-## by Darian Alberto Camacho Salas
-
-Reproductor de videos en línea para PC de gama baja
+Reproductor de videos en línea para PC de gama baja (Asus Eee PC con 1GB RAM)
 
 ---
 
@@ -16,6 +14,7 @@ Reproductor de videos en línea para PC de gama baja
 - ⚡ **Optimizado** para 1GB RAM y procesador Celeron
 - 🖥️ **Interfaz conversacional** sin entorno gráfico
 - 🧹 **Autolimpieza**: No guarda archivos temporales
+- 🎯 **Video forzado**: Usa múltiples backends para garantizar que el video se vea
 
 ---
 
@@ -25,8 +24,8 @@ Reproductor de videos en línea para PC de gama baja
 # Somos XONINDU
 # Creador: Darian Alberto Camacho Salas
 
-# XoniTube v4.2.0 - Buscador de YouTube para terminal
-# Metodo anti-bloqueo por defecto
+# XoniTube v5.1 - Buscador de YouTube para terminal
+# Metodo anti-bloqueo por defecto con video forzado
 
 # Arch Linux
 sudo pacman -S python python-pip mpv yt-dlp
@@ -48,7 +47,7 @@ yt-dlp --version
 mpv --version
 
 # Ejecucion:
-python start.py
+python xonitube.py
 ```
 
 ---
@@ -57,7 +56,7 @@ python start.py
 
 1. **Ejecuta el programa:**
    ```bash
-   python start.py
+   python xonitube.py
    ```
 
 2. **Escribe tu búsqueda:**
@@ -67,26 +66,28 @@ python start.py
 
 3. **Elige cuántos resultados ver:**
    ```
-   Cuantos resultados? (1-10, Enter=5): 5
+   Cuantos resultados? (1-15, Enter=5): 5
    ```
 
 4. **Selecciona un video de la lista:**
    ```
-   Que video? (1-5, Enter=menu): 1
+   Numero de video (Enter para nueva busqueda): 1
    ```
 
 5. **Elige la calidad:**
    ```
    CALIDADES DISPONIBLES:
-     1. Peor calidad (mas rapido)
-     2. 144p
-     3. 240p
-     4. 360p
-     5. 480p
-     6. Mejor calidad (mas lento)
-     7. Solo audio
+     1. Peor calidad (mas rapida, ahorro de datos)
+     2. 144p (muy baja)
+     3. 240p (baja)
+     4. 360p (media)
+     5. 480p (estandar)
+     6. 720p (HD)
+     7. 1080p (Full HD)
+     8. Mejor calidad disponible (mas lenta)
+     9. Solo audio (sin video)
    
-   Elige calidad (1-7, Enter=1): 3
+   Elige una opcion (1-9, Enter=1): 1
    ```
 
 6. **Controla la reproducción:**
@@ -100,12 +101,49 @@ python start.py
 
 ---
 
+## 🛠️ Solución de problemas de video
+
+Si el audio se escucha pero **no se ve el video**, XoniTube probará automáticamente diferentes backends de video (x11, sdl, vaapi, vdpau, drm, xv) hasta encontrar uno que funcione.
+
+### 🔍 Diagnóstico manual
+
+Si el problema persiste, ejecuta estos comandos para verificar los backends soportados por tu sistema:
+
+```bash
+# Listar backends de video disponibles
+mpv --vo=help
+
+# Listar backends de audio disponibles
+mpv --ao=help
+```
+
+Asegúrate de que **x11** aparezca en la lista de backends de video. Si no aparece, instala los controladores apropiados para tu GPU:
+
+```bash
+# Para Intel
+sudo apt install xserver-xorg-video-intel
+
+# Para NVIDIA (controlador libre nouveau)
+sudo apt install xserver-xorg-video-nouveau
+
+# Para AMD/ATI
+sudo apt install xserver-xorg-video-ati
+
+# Controlador VESA genérico (si no sabes cuál es tu GPU)
+sudo apt install xserver-xorg-video-vesa
+```
+
+Después de instalar los controladores, reinicia X (cerrando sesión y volviendo a entrar) o reinicia el sistema.
+
+---
+
 ## 💡 Características Técnicas
 
 - **Lenguaje**: Python 3
 - **Dependencias mínimas**: Solo requiere yt-dlp y mpv
 - **Optimizado para**: Asus Eee PC con 1GB de RAM y procesador Celeron
 - **Método de reproducción**: Pipe entre yt-dlp y mpv para evitar bloqueos (no guarda archivos)
+- **Backends de video**: Prueba automática de x11, sdl, vaapi, vdpau, drm, xv
 - **Cache**: Configurado para reproducción fluida en conexiones lentas
 - **Autolimpieza**: Elimina cualquier archivo temporal al terminar
 
@@ -119,4 +157,3 @@ Si tienes preguntas sobre los conceptos de programación, automatización o mejo
 - 📘 **Facebook**: xonidu
 - 📧 **Email**: xonidu@gmail.com
 
-## SOMOS XONIDU
