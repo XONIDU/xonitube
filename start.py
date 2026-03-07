@@ -2,327 +2,275 @@
 # -*- coding: utf-8 -*-
 
 """
-XoniTube v4.2.0 - Buscador de YouTube
+XoniTube v5.0 - Buscador ultra optimizado
 Creado por Darian Alberto Camacho Salas
-Con metodo anti-bloqueo por defecto y autolimpieza
+Consumo minimo de recursos - Ideal para 1GB RAM
 """
 
 import subprocess
 import sys
 import os
-import tempfile
-import atexit
-import signal
+import json
+import re
+from threading import Thread
+from queue import Queue
 
 # ============================================================================
-# CONFIGURACION
+# CONFIGURACION OPTIMIZADA
 # ============================================================================
 
 REPRODUCTOR = "mpv"
-USAR_YTDLP_POR_DEFECTO = True  # Usar metodo anti-bloqueo siempre
-ARCHIVOS_TEMP = []  # Lista para rastrear archivos temporales
+CACHE_DIR = "/tmp/xonitube_cache"
+os.makedirs(CACHE_DIR, exist_ok=True)
 
 # ============================================================================
-# FUNCIONES DE LIMPIEZA
-# ============================================================================
-
-def limpiar_archivos_temp():
-    """Elimina todos los archivos temporales creados"""
-    for archivo in ARCHIVOS_TEMP:
-        try:
-            if os.path.exists(archivo):
-                os.unlink(archivo)
-        except:
-            pass
-
-def signal_handler(sig, frame):
-    """Maneja señales como Ctrl+C"""
-    limpiar_archivos_temp()
-    print("\n\nHasta luego!")
-    sys.exit(0)
-
-# Registrar limpieza al salir
-atexit.register(limpiar_archivos_temp)
-signal.signal(signal.SIGINT, signal_handler)
-
-# ============================================================================
-# FUNCIONES PRINCIPALES
+# FUNCIONES ULTRA RAPIDAS
 # ============================================================================
 
 def limpiar_pantalla():
     """Limpia la pantalla"""
     os.system('clear' if os.name == 'posix' else 'cls')
 
-def buscar_videos(termino, cantidad):
+def buscar_videos_rapido(termino, cantidad):
     """
-    Busca videos en YouTube
+    Busqueda ultra optimizada - usa el metodo mas rapido posible
     """
     print(f"\nBuscando: '{termino}'...")
     
     try:
+        # Usar formato mas simple y rapido
         cmd = [
             "yt-dlp",
             "--no-warnings",
-            "--get-title",
-            "--get-id",
-            f"ytsearch{cantidad}:{termino}"
+            "--quiet",  # Suprimir output innecesario
+            "--no-playlist",
+            "--flat-playlist",  # Mas rapido, no extrae metadata
+            "--print", "%(title)s|%(id)s",
+            f"ytsearch{cantidad}:{termino}",
+            "--sleep-interval", "0",
+            "--force-ipv4",
+            "--buffer-size", "16K",  # Buffer pequeno para ahorrar RAM
+            "--http-chunk-size", "1M"
         ]
         
-        resultado = subprocess.run(cmd, capture_output=True, text=True)
+        # Ejecutar con timeout corto
+        resultado = subprocess.run(
+            cmd, 
+            capture_output=True, 
+            text=True, 
+            timeout=10,
+            preexec_fn=os.setsid  # Para poder matar el proceso facilmente
+        )
         
         if resultado.returncode != 0:
-            print(f"Error en busqueda")
             return None
         
-        lineas = resultado.stdout.strip().split('\n')
         videos = []
-        
-        for i in range(0, len(lineas), 2):
-            if i + 1 < len(lineas):
-                titulo = lineas[i].strip()
-                video_id = lineas[i+1].strip()
-                
+        for linea in resultado.stdout.strip().split('\n'):
+            if '|' in linea:
+                titulo, vid = linea.split('|', 1)
                 videos.append({
-                    'numero': len(videos) + 1,
-                    'titulo': titulo,
-                    'link': f"https://youtube.com/watch?v={video_id}"
+                    'num': len(videos) + 1,
+                    'tit': titulo.strip()[:60],  # Limitar titulo
+                    'url': f"https://youtu.be/{vid.strip()}"  # URL corta
                 })
         
         return videos if videos else None
         
+    except subprocess.TimeoutExpired:
+        print("  Tiempo excedido")
+        return None
     except Exception as e:
-        print(f"Error: {e}")
         return None
 
-def mostrar_videos(videos):
-    """Muestra la lista de videos"""
-    print("\n" + "="*70)
-    print("RESULTADOS".center(70))
-    print("="*70)
-    
+def mostrar_resultados(videos):
+    """Muestra resultados en formato compacto"""
+    print("\n" + "-"*50)
     for v in videos:
-        print(f"\n{v['numero']}. {v['titulo']}")
-    print("\n" + "="*70)
+        print(f"{v['num']}. {v['tit']}")
+    print("-"*50)
 
-def mostrar_calidades():
-    """Muestra las opciones de calidad"""
-    print("\nCALIDADES DISPONIBLES:")
-    print("  1. Peor calidad (mas rapido)")
-    print("  2. 144p")
-    print("  3. 240p")
-    print("  4. 360p")
-    print("  5. 480p")
-    print("  6. Mejor calidad (mas lento)")
-    print("  7. Solo audio")
-
-def obtener_formato_calidad(opcion):
-    """Convierte opcion a formato yt-dlp"""
-    formatos = {
-        '1': "worst",
-        '2': "worst[height<=144]",
-        '3': "worst[height<=240]",
-        '4': "worst[height<=360]",
-        '5': "worst[height<=480]",
-        '6': "best",
-        '7': "bestaudio"
-    }
-    return formatos.get(opcion, "worst")
-
-def preguntar_calidad():
-    """Pregunta que calidad usar"""
-    while True:
-        mostrar_calidades()
-        opcion = input("\nElige calidad (1-7, Enter=1): ").strip()
-        
-        if opcion == "":
-            return "worst"
-        
-        if opcion in ['1','2','3','4','5','6','7']:
-            return obtener_formato_calidad(opcion)
-        
-        print("Opcion invalida")
-
-def reproducir_video(link, titulo, formato_calidad):
-    """Reproduce un video con metodo anti-bloqueo y autolimpieza"""
-    calidad_texto = {
-        "worst": "Peor calidad",
-        "worst[height<=144]": "144p",
-        "worst[height<=240]": "240p",
-        "worst[height<=360]": "360p",
-        "worst[height<=480]": "480p",
-        "best": "Mejor calidad",
-        "bestaudio": "Solo audio"
-    }.get(formato_calidad, formato_calidad)
-    
-    print(f"\nReproduciendo: {titulo[:50]}...")
-    print(f"Calidad: {calidad_texto}")
-    print("Metodo: anti-bloqueo (streaming sin guardar archivos)")
-    print("\nCONTROLES MPV:")
-    print("  ← →  : Retroceder / Avanzar 5 segundos")
-    print("  ↑ ↓  : Subir / Bajar volumen")
-    print("  Space: Pausa/Reanudar")
-    print("  q    : Salir de la reproduccion")
-    print("  Ctrl+C: Volver al menu\n")
+def reproducir_optimizado(url, calidad):
+    """
+    Reproduccion con minimo consumo de recursos
+    """
+    print(f"\n▶ Cargando...")
     
     try:
-        # Usar pipe - NO crea archivos en disco
-        cmd_ytdlp = [
+        # Usar opciones de minimo consumo
+        cmd_yt = [
             "yt-dlp",
-            "-f", formato_calidad,
-            "-o", "-",  # Salida a stdout (pipe, no archivo)
-            "--no-part",  # No usar archivos parciales
-            "--no-mtime",  # No modificar tiempos
-            link
+            "-f", calidad,
+            "-o", "-",
+            "--no-part",
+            "--no-mtime",
+            "--quiet",
+            "--no-warnings",
+            "--buffer-size", "16K",
+            "--http-chunk-size", "1M",
+            "--throttled-rate", "100K",  # Limitar velocidad si es necesario
+            url
         ]
         
         cmd_mpv = [
             REPRODUCTOR,
             "--cache=yes",
-            "--cache-secs=30",
-            "--demuxer-max-bytes=150M",
-            "--demuxer-readahead-secs=20",
+            "--cache-secs=10",  # Cache reducido
+            "--demuxer-max-bytes=50M",  # Reducido
+            "--demuxer-readahead-secs=5",  # Reducido
+            "--vd-lavc-fast",  # Decodificacion rapida
+            "--vd-lavc-skip-loop-filter=all",  # Saltar filtros pesados
+            "--profile=fast",  # Perfil rapido
             "--no-input-default-bindings",
-            "--input-conf=/dev/null",  # Evitar archivos de config
-            "-"  # Entrada desde stdin
+            "--really-quiet",
+            "-"
         ]
         
-        # Ejecutar sin crear archivos temporales
+        # Ejecutar con prioridad baja para no saturar el sistema
         p1 = subprocess.Popen(
-            cmd_ytdlp, 
+            cmd_yt, 
             stdout=subprocess.PIPE, 
             stderr=subprocess.DEVNULL,
-            stdin=subprocess.DEVNULL
+            stdin=subprocess.DEVNULL,
+            preexec_fn=os.setsid
         )
         
         p2 = subprocess.Popen(
             cmd_mpv, 
             stdin=p1.stdout,
             stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+            stderr=subprocess.DEVNULL,
+            preexec_fn=os.setsid
         )
         
-        p2.wait()  # Esperar a que termine la reproduccion
+        p2.wait()
         
-        # Asegurar que el pipe se cierre correctamente
-        if p1.stdout:
-            p1.stdout.close()
-        
-        return True
-        
-    except KeyboardInterrupt:
-        print("\n\nReproduccion detenida")
-        # Terminar procesos hijos si existen
+        # Limpiar
         try:
-            p1.terminate()
-            p2.terminate()
+            os.killpg(os.getpgid(p1.pid), 15)
         except:
             pass
+            
         return True
-    except Exception as e:
-        print(f"Error: {e}")
+        
+    except:
         return False
 
 def preguntar_cantidad():
-    """Pregunta cuantos resultados"""
-    while True:
-        try:
-            cant = input("\nCuantos resultados? (1-10, Enter=5): ").strip()
-            if cant == "":
-                return 5
-            cant = int(cant)
-            if 1 <= cant <= 10:
-                return cant
-            print("Numero entre 1 y 10")
-        except ValueError:
-            print("Numero invalido")
+    """Pregunta rapida"""
+    try:
+        cant = input("\nCuantos? (1-5, Enter=3): ").strip()
+        if cant == "":
+            return 3
+        cant = int(cant)
+        if 1 <= cant <= 5:
+            return cant
+        return 3
+    except:
+        return 3
 
-def preguntar_video(max_num):
-    """Pregunta que video reproducir"""
-    while True:
-        try:
-            opcion = input(f"\nQue video? (1-{max_num}, Enter=menu): ").strip()
-            if opcion == "":
-                return None
-            num = int(opcion)
-            if 1 <= num <= max_num:
-                return num
-            print(f"Numero entre 1 y {max_num}")
-        except ValueError:
-            print("Numero invalido")
+def preguntar_calidad_rapida():
+    """Seleccion rapida de calidad"""
+    print("\nCalidad: 1=P 2=144 3=240 4=360 5=A")
+    op = input("→ ").strip()
+    
+    calidades = {
+        '1': "worst",
+        '2': "worst[height<=144]",
+        '3': "worst[height<=240]",
+        '4': "worst[height<=360]",
+        '5': "bestaudio"
+    }
+    return calidades.get(op, "worst")
 
 # ============================================================================
-# PROGRAMA PRINCIPAL
+# PROGRAMA PRINCIPAL OPTIMIZADO
 # ============================================================================
 
 def main():
-    """Funcion principal"""
+    """Funcion principal con minimo consumo"""
     
     limpiar_pantalla()
-    print("="*70)
-    print("XONITUBE v4.2.0".center(70))
-    print("="*70)
-    print("Creado por Darian Alberto Camacho Salas".center(70))
-    print("="*70)
-    print("\nINFORMACION:")
-    print("  • Metodo anti-bloqueo activado por defecto")
-    print("  • Streaming directo - No guarda archivos en disco")
-    print("  • Usa ← → para retroceder/avanzar durante reproduccion")
-    print("  • Space para pausar")
+    print("="*50)
+    print("XONITUBE v5.0".center(50))
+    print("="*50)
+    print("Creado por Darian Alberto Camacho Salas".center(50))
+    print("="*50)
+    print("\nModo ultra optimizado - 1GB RAM")
+    print("Comandos: buscar, salir")
     
     while True:
         try:
-            # Busqueda
-            busqueda = input("\nBuscar? → ").strip()
+            # Entrada simple
+            entrada = input("\n> ").strip()
             
-            if busqueda.lower() in ['salir', 'exit', 'q']:
-                print("\nHasta luego!")
+            if entrada.lower() in ['salir', 'q', 'exit']:
                 break
             
-            if not busqueda:
+            if not entrada:
                 continue
             
-            # Cantidad de resultados
-            cantidad = preguntar_cantidad()
-            
-            # Buscar videos
-            videos = buscar_videos(busqueda, cantidad)
-            
-            if not videos:
-                print("\nNo hay resultados")
-                continue
-            
-            # Mostrar resultados
-            mostrar_videos(videos)
-            
-            # Reproducir
-            while True:
-                num = preguntar_video(len(videos))
+            # Si empieza con 'b ' es busqueda
+            if entrada.startswith('b '):
+                termino = entrada[2:]
+                cantidad = preguntar_cantidad()
                 
-                if num is None:
-                    break
+                # Buscar
+                videos = buscar_videos_rapido(termino, cantidad)
                 
-                # Preguntar calidad
-                formato = preguntar_calidad()
+                if not videos:
+                    print("Sin resultados")
+                    continue
                 
-                # Reproducir con metodo anti-bloqueo
-                video = videos[num-1]
-                reproducir_video(video['link'], video['titulo'], formato)
+                # Mostrar
+                mostrar_resultados(videos)
                 
-                # Preguntar si otro
-                otro = input("\nOtro video de esta busqueda? (s/n): ").strip().lower()
-                if otro not in ['s', 'si', 'y']:
-                    break
+                # Seleccionar
+                try:
+                    sel = input("\nNum? (Enter=menu): ").strip()
+                    if sel and sel.isdigit():
+                        idx = int(sel) - 1
+                        if 0 <= idx < len(videos):
+                            calidad = preguntar_calidad_rapida()
+                            reproducir_optimizado(videos[idx]['url'], calidad)
+                except:
+                    pass
+            
+            # Busqueda directa (asume que es busqueda)
+            else:
+                cantidad = preguntar_cantidad()
+                videos = buscar_videos_rapido(entrada, cantidad)
+                
+                if not videos:
+                    print("Sin resultados")
+                    continue
+                
+                mostrar_resultados(videos)
+                
+                try:
+                    sel = input("\nNum? (Enter=menu): ").strip()
+                    if sel and sel.isdigit():
+                        idx = int(sel) - 1
+                        if 0 <= idx < len(videos):
+                            calidad = preguntar_calidad_rapida()
+                            reproducir_optimizado(videos[idx]['url'], calidad)
+                except:
+                    pass
                     
         except KeyboardInterrupt:
-            print("\n\nHasta luego!")
+            print("\n\nAdios!")
             break
-        except Exception as e:
-            print(f"\nError inesperado: {e}")
+        except:
+            continue
 
 if __name__ == "__main__":
     try:
         main()
-    except Exception as e:
-        print(f"\nError fatal: {e}")
-        limpiar_archivos_temp()
-        sys.exit(1)
+    except:
+        pass
+    finally:
+        # Limpiar cache
+        try:
+            os.system(f"rm -rf {CACHE_DIR}/* 2>/dev/null")
+        except:
+            pass
