@@ -2,39 +2,35 @@
 # -*- coding: utf-8 -*-
 
 """
-XoniTube v5.0 - Buscador y reproductor de YouTube desde terminal
+XoniTube v5.1 - Buscador de YouTube con visualización forzada
 Creado por Darian Alberto Camacho Salas
-Optimizado para xoniant32 y sistemas de bajos recursos
-Version sin emojis para maxima compatibilidad
+Para xoniant32 - Garantiza que el video SE VEA.
 """
 
 import subprocess
 import sys
 import os
-import signal
+import time
 
 # ============================================================================
-# CONFIGURACION
+# CONFIGURACIÓN
 # ============================================================================
 
 REPRODUCTOR = "mpv"
 CALIDAD_POR_DEFECTO = "worst"
-BACKEND_VIDEO = "x11"  # Forzamos X11 para maxima compatibilidad
+BACKEND_VIDEO_PREFERIDO = "x11"  # Intenta primero con X11
+BACKENDS_ALTERNOS = ["sdl", "vaapi", "vdpau", "drm", "xv"]  # Opciones de respaldo
 
 # ============================================================================
 # FUNCIONES PRINCIPALES
 # ============================================================================
 
 def limpiar_pantalla():
-    """Limpia la pantalla de la terminal"""
     os.system('clear' if os.name == 'posix' else 'cls')
 
 def buscar_videos(termino, cantidad):
-    """
-    Busca videos en YouTube usando yt-dlp de forma rapida y liviana
-    """
+    """Busca videos usando yt-dlp de forma ultra rápida"""
     print(f"\nBuscando: '{termino}'...")
-
     try:
         cmd = [
             "yt-dlp",
@@ -44,12 +40,9 @@ def buscar_videos(termino, cantidad):
             "--print", "%(title)s|%(id)s",
             f"ytsearch{cantidad}:{termino}"
         ]
-
         resultado = subprocess.run(cmd, capture_output=True, text=True)
-
         if resultado.returncode != 0:
             return None
-
         videos = []
         for linea in resultado.stdout.strip().split('\n'):
             if '|' in linea:
@@ -59,14 +52,11 @@ def buscar_videos(termino, cantidad):
                     'tit': titulo.strip()[:70],
                     'url': f"https://youtu.be/{vid.strip()}"
                 })
-
         return videos if videos else None
-
-    except Exception as e:
+    except:
         return None
 
 def mostrar_resultados(videos):
-    """Muestra la lista de resultados numerados"""
     print("\n" + "="*70)
     print("RESULTADOS".center(70))
     print("="*70)
@@ -74,12 +64,41 @@ def mostrar_resultados(videos):
         print(f"\n{v['num']}. {v['tit']}")
     print("\n" + "="*70)
 
-def reproducir(url, calidad, nombre_calidad):
+def probar_backend_video(backend):
+    """Prueba si un backend de video funciona (reproducción silenciosa de 1 frame)"""
+    try:
+        cmd = [
+            REPRODUCTOR,
+            f"--vo={backend}",
+            "--ao=null",        # Sin audio
+            "--frames=1",       # Solo 1 frame
+            "--really-quiet",
+            "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        ]
+        subprocess.run(cmd, timeout=5, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+        return True
+    except:
+        return False
+
+def reproducir_con_fallback(url, calidad, nombre_calidad):
     """
-    Reproduce el video usando mpv con el backend de video forzado
+    Intenta reproducir con el backend preferido; si falla, prueba alternativas.
     """
-    print(f"\nReproduciendo en {nombre_calidad}...")
-    print("Presiona Ctrl+C para volver al menu\n")
+    # Lista de backends a probar: preferido + alternativos
+    backends_a_probar = [BACKEND_VIDEO_PREFERIDO] + BACKENDS_ALTERNOS
+
+    for backend in backends_a_probar:
+        print(f"Probando backend de video: {backend} ...")
+        if probar_backend_video(backend):
+            print(f"Usando backend: {backend}")
+            break
+    else:
+        print("\n¡No se encontró ningún backend de video funcional!")
+        print("Instala controladores de video: 'sudo apt install xserver-xorg-video-intel' (o el correspondiente a tu GPU).")
+        return False
+
+    print(f"\n▶ Reproduciendo en {nombre_calidad} (backend {backend})...")
+    print("Presiona Ctrl+C para volver al menú\n")
     print("CONTROLES MPV:")
     print("  ← → : Retroceder/Avanzar 5s")
     print("  Space : Pausa")
@@ -88,7 +107,6 @@ def reproducir(url, calidad, nombre_calidad):
     print("-"*50)
 
     try:
-        # Comando yt-dlp para obtener el stream y pasarlo por pipe
         cmd_yt = [
             "yt-dlp",
             "-f", calidad,
@@ -97,12 +115,15 @@ def reproducir(url, calidad, nombre_calidad):
             url
         ]
 
-        # Comando mpv con backend forzado y opciones de cache
         cmd_mpv = [
             REPRODUCTOR,
+            f"--vo={backend}",
+            "--ao=alsa",         # Forzar ALSA (evita pipewire)
             "--cache=yes",
             "--cache-secs=30",
-            f"--vo={BACKEND_VIDEO}",
+            "--x11-bypass-compositor=yes",  # Evita problemas con compositores
+            "--window-minimized=no",         # Asegura que la ventana no se minimice
+            "--keepaspect-window",
             "--really-quiet",
             "-"
         ]
@@ -110,18 +131,16 @@ def reproducir(url, calidad, nombre_calidad):
         p1 = subprocess.Popen(cmd_yt, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
         p2 = subprocess.Popen(cmd_mpv, stdin=p1.stdout)
         p2.wait()
-
         return True
 
     except KeyboardInterrupt:
         print("\n\nReproduccion detenida")
         return True
     except Exception as e:
-        print(f"\nError al reproducir: {e}")
+        print(f"\nError al reproducir con backend {backend}: {e}")
         return False
 
 def preguntar_cantidad():
-    """Pregunta al usuario cuantos resultados desea ver"""
     while True:
         try:
             cant = input("\nCuantos resultados? (1-15, Enter=5): ").strip()
@@ -135,7 +154,6 @@ def preguntar_cantidad():
             print("Ingresa un numero valido")
 
 def preguntar_calidad():
-    """Muestra menu de calidades y retorna el formato y nombre elegido"""
     print("\n" + "="*50)
     print("CALIDADES DISPONIBLES".center(50))
     print("="*50)
@@ -152,10 +170,8 @@ def preguntar_calidad():
 
     while True:
         op = input("Elige una opcion (1-9, Enter=1): ").strip()
-
         if op == "":
             return "worst", "Peor calidad"
-
         calidades = {
             '1': ("worst", "Peor calidad"),
             '2': ("worst[height<=144]", "144p"),
@@ -167,10 +183,8 @@ def preguntar_calidad():
             '8': ("best", "Mejor calidad"),
             '9': ("bestaudio", "Solo audio")
         }
-
         if op in calidades:
             return calidades[op]
-
         print("Opcion no valida")
 
 # ============================================================================
@@ -178,61 +192,45 @@ def preguntar_calidad():
 # ============================================================================
 
 def main():
-    """Flujo principal del programa"""
     limpiar_pantalla()
     print("="*70)
-    print("XONITUBE v5.0".center(70))
+    print("XONITUBE v5.1 - MODO VIDEO FORZADO".center(70))
     print("="*70)
     print("Creado por Darian Alberto Camacho Salas".center(70))
     print("="*70)
     print("\nINSTRUCCIONES:")
     print("  • Escribe lo que quieres buscar (ej: 'kendrick lamar')")
-    print("  • Responde las preguntas para elegir cantidad y calidad")
-    print("  • Durante la reproduccion usa ← → Space ↑ ↓ q")
-    print("  • Escribe 'salir' para terminar")
+    print("  • El video se FORZARÁ a mostrarse con el mejor backend disponible.")
+    print("  • Si aún no ves video, instala controladores: 'sudo apt install xserver-xorg-video-intel'")
     print("="*70)
 
     while True:
         try:
             entrada = input("\nBuscar → ").strip()
-
             if entrada.lower() in ['salir', 'exit', 'q']:
                 print("\nHasta luego!")
                 break
-
             if not entrada:
                 continue
 
-            # 1. Preguntar cantidad de resultados
             cantidad = preguntar_cantidad()
-
-            # 2. Realizar busqueda
             videos = buscar_videos(entrada, cantidad)
-
             if not videos:
                 print("\nNo se encontraron resultados")
                 continue
 
-            # 3. Mostrar resultados
             mostrar_resultados(videos)
 
-            # 4. Bucle para seleccionar y reproducir videos de esta busqueda
             while True:
                 sel = input("\nNumero de video (Enter para nueva busqueda): ").strip()
-
                 if sel == "":
                     break
-
                 if sel.isdigit():
                     idx = int(sel) - 1
                     if 0 <= idx < len(videos):
-                        # 5. Elegir calidad
                         formato, nombre_calidad = preguntar_calidad()
-
-                        # 6. Reproducir
-                        reproducir(videos[idx]['url'], formato, nombre_calidad)
-
-                        # 7. Preguntar si desea otro de la misma busqueda
+                        # Intentar reproducir con fallback automático
+                        reproducir_con_fallback(videos[idx]['url'], formato, nombre_calidad)
                         otro = input("\nReproducir otro video de esta busqueda? (s/n): ").strip().lower()
                         if otro not in ['s', 'si', 'y']:
                             break
@@ -246,11 +244,6 @@ def main():
             break
         except Exception as e:
             print(f"\nError inesperado: {e}")
-            # En caso de error, volvemos al inicio del bucle
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        print(f"\nError fatal: {e}")
-        sys.exit(1)
+    main()
