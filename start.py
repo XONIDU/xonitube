@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-XoniTube v5.6 - Buscador con ventana NO maximizable
+XoniTube v5.0 - Buscador ultra optimizado
 Creado por Darian Alberto Camacho Salas
-Solucion: ventana fija para evitar lag al maximizar
+Consumo minimo de recursos - Sin limites de tiempo
 """
 
 import subprocess
@@ -12,21 +12,25 @@ import sys
 import os
 
 # ============================================================================
-# CONFIGURACION
+# CONFIGURACION OPTIMIZADA
 # ============================================================================
 
 REPRODUCTOR = "mpv"
-TAMANO_VENTANA = "640x360"  # Tamaño fijo que funciona bien
 
 # ============================================================================
 # FUNCIONES
 # ============================================================================
 
 def limpiar_pantalla():
+    """Limpia la pantalla"""
     os.system('clear' if os.name == 'posix' else 'cls')
 
 def buscar_videos(termino, cantidad):
+    """
+    Busqueda simple y rapida - sin timeouts
+    """
     print(f"\nBuscando: '{termino}'...")
+    
     try:
         cmd = [
             "yt-dlp",
@@ -36,9 +40,12 @@ def buscar_videos(termino, cantidad):
             "--print", "%(title)s|%(id)s",
             f"ytsearch{cantidad}:{termino}"
         ]
+        
         resultado = subprocess.run(cmd, capture_output=True, text=True)
+        
         if resultado.returncode != 0:
             return None
+        
         videos = []
         for linea in resultado.stdout.strip().split('\n'):
             if '|' in linea:
@@ -48,11 +55,14 @@ def buscar_videos(termino, cantidad):
                     'tit': titulo.strip()[:70],
                     'url': f"https://youtu.be/{vid.strip()}"
                 })
+        
         return videos if videos else None
+        
     except Exception as e:
         return None
 
 def mostrar_resultados(videos):
+    """Muestra resultados"""
     print("\n" + "="*70)
     print("RESULTADOS".center(70))
     print("="*70)
@@ -62,10 +72,9 @@ def mostrar_resultados(videos):
 
 def reproducir(url, calidad, nombre_calidad):
     """
-    Reproduccion con ventana de tamaño fijo
+    Reproduccion simple
     """
     print(f"\nReproduciendo en {nombre_calidad}...")
-    print("  Tamaño fijo: 640x360 (NO maximizar - causa lag)")
     print("  Presiona Ctrl+C para volver al menu\n")
     print("  CONTROLES MPV:")
     print("    ← → : Retroceder/Avanzar 5s")
@@ -75,7 +84,7 @@ def reproducir(url, calidad, nombre_calidad):
     print("-"*50)
     
     try:
-        cmd_yt = [
+        cmd = [
             "yt-dlp",
             "-f", calidad,
             "-o", "-",
@@ -83,20 +92,14 @@ def reproducir(url, calidad, nombre_calidad):
             url
         ]
         
-        # MPV con tamaño fijo y opciones que evitan maximizar
         mpv_cmd = [
             REPRODUCTOR,
             "--cache=yes",
             "--cache-secs=30",
-            "--no-window-dragging",        # Evita redimensionar
-            "--no-border",                  # Sin bordes para no tentar a maximizar
-            "--geometry", TAMANO_VENTANA,   # Tamaño fijo
-            "--ontop",                       # Siempre visible
-            "--keepaspect-window",           # Mantener aspecto
             "-"
         ]
         
-        p1 = subprocess.Popen(cmd_yt, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        p1 = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
         p2 = subprocess.Popen(mpv_cmd, stdin=p1.stdout)
         p2.wait()
         
@@ -110,6 +113,7 @@ def reproducir(url, calidad, nombre_calidad):
         return False
 
 def preguntar_cantidad():
+    """Pregunta simple"""
     while True:
         try:
             cant = input("\nCuantos resultados? (1-15, Enter=5): ").strip()
@@ -123,6 +127,7 @@ def preguntar_cantidad():
             print("Numero invalido")
 
 def preguntar_calidad():
+    """Seleccion de calidad con texto claro"""
     print("\n" + "="*50)
     print("CALIDADES DISPONIBLES".center(50))
     print("="*50)
@@ -165,15 +170,17 @@ def preguntar_calidad():
 # ============================================================================
 
 def main():
+    """Funcion principal"""
+    
     limpiar_pantalla()
     print("="*70)
-    print("XONITUBE v5.6 - MODO VENTANA FIJA".center(70))
+    print("XONITUBE v5.0".center(70))
     print("="*70)
     print("Creado por Darian Alberto Camacho Salas".center(70))
     print("="*70)
     print("\nINSTRUCCIONES:")
-    print("  • El video se abre en ventana de 640x360 (tamaño fijo)")
-    print("  • IMPORTANTE: No maximices la ventana o tendras lag")
+    print("  • Escribe lo que quieres buscar")
+    print("  • Ejemplo: r u mine, kendrick lamar, bad bunny")
     print("  • Escribe 'salir' para terminar")
     print("="*70)
     
@@ -188,15 +195,20 @@ def main():
             if not entrada:
                 continue
             
+            # Preguntar cantidad
             cantidad = preguntar_cantidad()
+            
+            # Buscar videos
             videos = buscar_videos(entrada, cantidad)
             
             if not videos:
                 print("\nNo se encontraron resultados")
                 continue
             
+            # Mostrar resultados
             mostrar_resultados(videos)
             
+            # Seleccionar video
             while True:
                 sel = input("\nNumero de video (Enter para nueva busqueda): ").strip()
                 
@@ -206,9 +218,13 @@ def main():
                 if sel.isdigit():
                     idx = int(sel) - 1
                     if 0 <= idx < len(videos):
+                        # Preguntar calidad
                         formato, nombre_calidad = preguntar_calidad()
+                        
+                        # Reproducir
                         reproducir(videos[idx]['url'], formato, nombre_calidad)
                         
+                        # Preguntar si otro del mismo resultado
                         otro = input("\nReproducir otro video de esta busqueda? (s/n): ").strip().lower()
                         if otro not in ['s', 'si', 'y']:
                             break
