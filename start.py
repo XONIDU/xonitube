@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-XoniTube v5.5 - Buscador optimizado SIN MAXIMIZAR
+XoniTube v5.6 - Buscador con ventana NO maximizable
 Creado por Darian Alberto Camacho Salas
-Para equipos de 1GB RAM - Ventana fija mediana
+Solucion: ventana fija para evitar lag al maximizar
 """
 
 import subprocess
@@ -12,12 +12,11 @@ import sys
 import os
 
 # ============================================================================
-# CONFIGURACION OPTIMIZADA
+# CONFIGURACION
 # ============================================================================
 
 REPRODUCTOR = "mpv"
-TAMANO_VENTANA = "640x360"  # Tamaño fijo mediano (ni pequeño ni grande)
-POSICION = "50%:50%"        # Centrado en pantalla
+TAMANO_VENTANA = "640x360"  # Tamaño fijo que funciona bien
 
 # ============================================================================
 # FUNCIONES
@@ -63,10 +62,10 @@ def mostrar_resultados(videos):
 
 def reproducir(url, calidad, nombre_calidad):
     """
-    Reproduccion con ventana de TAMAÑO FIJO (no maximizable)
+    Reproduccion con ventana de tamaño fijo
     """
     print(f"\nReproduciendo en {nombre_calidad}...")
-    print("  Tamaño fijo: 640x360 (ideal para 1GB RAM)")
+    print("  Tamaño fijo: 640x360 (NO maximizar - causa lag)")
     print("  Presiona Ctrl+C para volver al menu\n")
     print("  CONTROLES MPV:")
     print("    ← → : Retroceder/Avanzar 5s")
@@ -84,30 +83,23 @@ def reproducir(url, calidad, nombre_calidad):
             url
         ]
         
-        # MPV con opciones ANTI-LAG y ventana FIJA
+        # MPV con tamaño fijo y opciones que evitan maximizar
         mpv_cmd = [
             REPRODUCTOR,
             "--cache=yes",
-            "--cache-secs=15",           # Menos cache = menos RAM
-            "--profile=fast",             # Perfil rápido
-            "--vd-lavc-fast",              # Decodificación rápida
-            "--vd-lavc-skip-loop-filter=all", # Saltar filtros
-            "--no-sub",                     # Sin subtítulos
-            "--no-osc",                      # Sin overlay
-            "--no-osd-bar",                  # Sin barra OSD
-            f"--geometry={TAMANO_VENTANA}",  # Tamaño fijo
-            f"--geometry={POSICION}",        # Posición centrada
-            "--ontop",                        # Siempre visible
-            "--no-window-dragging",           # No arrastrar (ahorra CPU)
-            "--no-border",                     # Sin bordes
-            "--keepaspect-window",             # Mantener aspecto
-            "--really-quiet",
+            "--cache-secs=30",
+            "--no-window-dragging",        # Evita redimensionar
+            "--no-border",                  # Sin bordes para no tentar a maximizar
+            "--geometry", TAMANO_VENTANA,   # Tamaño fijo
+            "--ontop",                       # Siempre visible
+            "--keepaspect-window",           # Mantener aspecto
             "-"
         ]
         
         p1 = subprocess.Popen(cmd_yt, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
         p2 = subprocess.Popen(mpv_cmd, stdin=p1.stdout)
         p2.wait()
+        
         return True
         
     except KeyboardInterrupt:
@@ -134,19 +126,19 @@ def preguntar_calidad():
     print("\n" + "="*50)
     print("CALIDADES DISPONIBLES".center(50))
     print("="*50)
-    print("  1. Peor calidad (mas rapido, recomendado)")
+    print("  1. Peor calidad (mas rapido, ahorro de datos)")
     print("  2. 144p (muy baja)")
     print("  3. 240p (baja)")
     print("  4. 360p (media)")
     print("  5. 480p (estandar)")
-    print("  6. 720p (HD - puede tener lag)") 
-    print("  7. Solo audio")
-    print("-"*50)
-    print("Para 1GB RAM, recomendamos opciones 1-3")
+    print("  6. 720p (HD)") 
+    print("  7. 1080p (Full HD)")
+    print("  8. Mejor calidad disponible (mas lento)")
+    print("  9. Solo audio (sin video)")
     print("-"*50)
     
     while True:
-        op = input("Elige una opcion (1-7, Enter=1): ").strip()
+        op = input("Elige una opcion (1-9, Enter=1): ").strip()
         
         if op == "":
             return "worst", "Peor calidad"
@@ -158,7 +150,9 @@ def preguntar_calidad():
             '4': ("worst[height<=360]", "360p"),
             '5': ("worst[height<=480]", "480p"),
             '6': ("best[height<=720]", "720p HD"),
-            '7': ("bestaudio", "Solo audio")
+            '7': ("best[height<=1080]", "1080p Full HD"),
+            '8': ("best", "Mejor calidad"),
+            '9': ("bestaudio", "Solo audio")
         }
         
         if op in calidades:
@@ -173,14 +167,14 @@ def preguntar_calidad():
 def main():
     limpiar_pantalla()
     print("="*70)
-    print("XONITUBE v5.5 - MODO ANTI-LAG".center(70))
+    print("XONITUBE v5.6 - MODO VENTANA FIJA".center(70))
     print("="*70)
     print("Creado por Darian Alberto Camacho Salas".center(70))
     print("="*70)
     print("\nINSTRUCCIONES:")
-    print("  • El video se abre en ventana MEDIANA (640x360)")
-    print("  • NO maximices la ventana (causa lag y desincronizacion)")
-    print("  • Si quieres ver mas grande, siéntate mas cerca")
+    print("  • El video se abre en ventana de 640x360 (tamaño fijo)")
+    print("  • IMPORTANTE: No maximices la ventana o tendras lag")
+    print("  • Escribe 'salir' para terminar")
     print("="*70)
     
     while True:
@@ -234,4 +228,3 @@ if __name__ == "__main__":
         main()
     except Exception as e:
         print(f"\nError fatal: {e}")
-
