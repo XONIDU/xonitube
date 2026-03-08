@@ -186,10 +186,10 @@ def main():
     
     while True:
         try:
-            entrada = input("\n🔍 Buscar → ").strip()
+            entrada = input("\nBuscar → ").strip()
             
             if entrada.lower() in ['salir', 'exit', 'q']:
-                print("\n👋 Hasta luego!")
+                print("\nHasta luego!")
                 break
             
             if not entrada:
@@ -210,7 +210,7 @@ def main():
             
             # Seleccionar video
             while True:
-                sel = input("\n🎯 Numero de video (Enter para nueva busqueda): ").strip()
+                sel = input("\nNumero de video (Enter para nueva busqueda): ").strip()
                 
                 if sel == "":
                     break
