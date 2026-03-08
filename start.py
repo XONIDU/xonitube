@@ -2,38 +2,35 @@
 # -*- coding: utf-8 -*-
 
 """
-XoniTube v5.2 - Buscador de YouTube con ventana siempre visible
+XoniTube v5.0 - Buscador ultra optimizado
 Creado por Darian Alberto Camacho Salas
-Para xoniant32 - Ventana siempre encima y en grande
+Consumo minimo de recursos - Sin limites de tiempo
 """
 
 import subprocess
 import sys
 import os
-import time
 
 # ============================================================================
-# CONFIGURACION
+# CONFIGURACION OPTIMIZADA
 # ============================================================================
 
 REPRODUCTOR = "mpv"
-CALIDAD_POR_DEFECTO = "worst"
-BACKEND_VIDEO = "x11"  # Backend fijo para maxima compatibilidad
 
 # ============================================================================
-# FUNCIONES PRINCIPALES
+# FUNCIONES
 # ============================================================================
 
 def limpiar_pantalla():
-    """Limpia la pantalla de la terminal"""
+    """Limpia la pantalla"""
     os.system('clear' if os.name == 'posix' else 'cls')
 
 def buscar_videos(termino, cantidad):
     """
-    Busca videos en YouTube usando yt-dlp de forma rapida y liviana
+    Busqueda simple y rapida - sin timeouts
     """
     print(f"\nBuscando: '{termino}'...")
-
+    
     try:
         cmd = [
             "yt-dlp",
@@ -43,12 +40,12 @@ def buscar_videos(termino, cantidad):
             "--print", "%(title)s|%(id)s",
             f"ytsearch{cantidad}:{termino}"
         ]
-
+        
         resultado = subprocess.run(cmd, capture_output=True, text=True)
-
+        
         if resultado.returncode != 0:
             return None
-
+        
         videos = []
         for linea in resultado.stdout.strip().split('\n'):
             if '|' in linea:
@@ -58,14 +55,14 @@ def buscar_videos(termino, cantidad):
                     'tit': titulo.strip()[:70],
                     'url': f"https://youtu.be/{vid.strip()}"
                 })
-
+        
         return videos if videos else None
-
+        
     except Exception as e:
         return None
 
 def mostrar_resultados(videos):
-    """Muestra la lista de resultados numerados"""
+    """Muestra resultados"""
     print("\n" + "="*70)
     print("RESULTADOS".center(70))
     print("="*70)
@@ -75,96 +72,82 @@ def mostrar_resultados(videos):
 
 def reproducir(url, calidad, nombre_calidad):
     """
-    Reproduce el video usando mpv con ventana siempre encima y en grande
+    Reproduccion simple
     """
-    print(f"\nReproduciendo en {nombre_calidad} (backend {BACKEND_VIDEO})...")
-    print("Presiona Ctrl+C para volver al menu\n")
-    print("CONTROLES MPV:")
-    print("  ← → : Retroceder/Avanzar 5s")
-    print("  Space : Pausa")
-    print("  ↑ ↓ : Volumen")
-    print("  f : Pantalla completa")
-    print("  q : Salir")
+    print(f"\n▶ Reproduciendo en {nombre_calidad}...")
+    print("  Presiona Ctrl+C para volver al menu\n")
+    print("  CONTROLES MPV:")
+    print("    ← → : Retroceder/Avanzar 5s")
+    print("    Space : Pausa")
+    print("    ↑ ↓ : Volumen")
+    print("    q : Salir")
     print("-"*50)
-
+    
     try:
-        # Comando yt-dlp para obtener el stream y pasarlo por pipe
-        cmd_yt = [
+        cmd = [
             "yt-dlp",
             "-f", calidad,
             "-o", "-",
             "--quiet",
             url
         ]
-
-        # Comando mpv con opciones para ventana siempre encima y en grande
-        cmd_mpv = [
+        
+        mpv_cmd = [
             REPRODUCTOR,
-            f"--vo={BACKEND_VIDEO}",
-            "--ao=alsa",         # Forzar ALSA (evita pipewire)
             "--cache=yes",
             "--cache-secs=30",
-            "--x11-bypass-compositor=yes",  # Evita problemas con compositores
-            "--window-minimized=no",         # Asegura que la ventana no se minimice
-            "--keepaspect-window",
-            "--geometry=100%x100%",          # Ocupa toda la pantalla
-            "--ontop",                        # Siempre encima de todo
-            "--ontop-level=window",           # Nivel de prioridad
-            "--focus-on-open=yes",            # Enfocar al abrir
-            "--really-quiet",
             "-"
         ]
-
-        # Ejecutar procesos
-        p1 = subprocess.Popen(cmd_yt, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-        p2 = subprocess.Popen(cmd_mpv, stdin=p1.stdout)
+        
+        p1 = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        p2 = subprocess.Popen(mpv_cmd, stdin=p1.stdout)
         p2.wait()
-
+        
         return True
-
+        
     except KeyboardInterrupt:
-        print("\n\nReproduccion detenida")
+        print("\n\n⏹ Reproduccion detenida")
         return True
     except Exception as e:
-        print(f"\nError al reproducir: {e}")
+        print(f"\nError: {e}")
         return False
 
 def preguntar_cantidad():
-    """Pregunta al usuario cuantos resultados desea ver"""
+    """Pregunta simple"""
     while True:
         try:
-            cant = input("\nCuantos resultados? (1-15, Enter=5): ").strip()
+            cant = input("\n¿Cuantos resultados? (1-15, Enter=5): ").strip()
             if cant == "":
                 return 5
             cant = int(cant)
             if 1 <= cant <= 15:
                 return cant
-            print("Numero entre 1 y 15")
+            print("Por favor ingresa un numero entre 1 y 15")
         except ValueError:
-            print("Ingresa un numero valido")
+            print("Numero invalido")
 
 def preguntar_calidad():
-    """Muestra menu de calidades y retorna el formato y nombre elegido"""
+    """Seleccion de calidad con texto claro"""
     print("\n" + "="*50)
     print("CALIDADES DISPONIBLES".center(50))
     print("="*50)
-    print("  1. Peor calidad (mas rapida, ahorro de datos)")
+    print("  1. Peor calidad (mas rapido, ahorro de datos)")
     print("  2. 144p (muy baja)")
     print("  3. 240p (baja)")
     print("  4. 360p (media)")
     print("  5. 480p (estandar)")
-    print("  6. 720p (HD)")
+    print("  6. 720p (HD)") 
     print("  7. 1080p (Full HD)")
-    print("  8. Mejor calidad disponible (mas lenta)")
+    print("  8. Mejor calidad disponible (mas lento)")
     print("  9. Solo audio (sin video)")
     print("-"*50)
-
+    
     while True:
         op = input("Elige una opcion (1-9, Enter=1): ").strip()
-
+        
         if op == "":
             return "worst", "Peor calidad"
-
+        
         calidades = {
             '1': ("worst", "Peor calidad"),
             '2': ("worst[height<=144]", "144p"),
@@ -176,91 +159,88 @@ def preguntar_calidad():
             '8': ("best", "Mejor calidad"),
             '9': ("bestaudio", "Solo audio")
         }
-
+        
         if op in calidades:
             return calidades[op]
-
-        print("Opcion no valida")
+        
+        print("Opcion invalida")
 
 # ============================================================================
 # PROGRAMA PRINCIPAL
 # ============================================================================
 
 def main():
-    """Flujo principal del programa"""
+    """Funcion principal"""
+    
     limpiar_pantalla()
     print("="*70)
-    print("XONITUBE v5.2".center(70))
+    print("XONITUBE v5.0".center(70))
     print("="*70)
     print("Creado por Darian Alberto Camacho Salas".center(70))
     print("="*70)
     print("\nINSTRUCCIONES:")
-    print("  • Escribe lo que quieres buscar (ej: 'kendrick lamar')")
-    print("  • Responde las preguntas para elegir cantidad y calidad")
-    print("  • El video se abrira en pantalla completa y siempre visible")
-    print("  • Durante la reproduccion usa ← → Space ↑ ↓ f q")
+    print("  • Escribe lo que quieres buscar")
+    print("  • Ejemplo: r u mine, kendrick lamar, bad bunny")
     print("  • Escribe 'salir' para terminar")
     print("="*70)
-
+    
     while True:
         try:
-            entrada = input("\nBuscar → ").strip()
-
+            entrada = input("\n🔍 Buscar → ").strip()
+            
             if entrada.lower() in ['salir', 'exit', 'q']:
-                print("\nHasta luego!")
+                print("\n👋 Hasta luego!")
                 break
-
+            
             if not entrada:
                 continue
-
-            # 1. Preguntar cantidad de resultados
+            
+            # Preguntar cantidad
             cantidad = preguntar_cantidad()
-
-            # 2. Realizar busqueda
+            
+            # Buscar videos
             videos = buscar_videos(entrada, cantidad)
-
+            
             if not videos:
-                print("\nNo se encontraron resultados")
+                print("\n❌ No se encontraron resultados")
                 continue
-
-            # 3. Mostrar resultados
+            
+            # Mostrar resultados
             mostrar_resultados(videos)
-
-            # 4. Bucle para seleccionar y reproducir videos de esta busqueda
+            
+            # Seleccionar video
             while True:
-                sel = input("\nNumero de video (Enter para nueva busqueda): ").strip()
-
+                sel = input("\n🎯 Numero de video (Enter para nueva busqueda): ").strip()
+                
                 if sel == "":
                     break
-
+                
                 if sel.isdigit():
                     idx = int(sel) - 1
                     if 0 <= idx < len(videos):
-                        # 5. Elegir calidad
+                        # Preguntar calidad
                         formato, nombre_calidad = preguntar_calidad()
-
-                        # 6. Reproducir
+                        
+                        # Reproducir
                         reproducir(videos[idx]['url'], formato, nombre_calidad)
-
-                        # 7. Preguntar si desea otro de la misma busqueda
-                        otro = input("\nReproducir otro video de esta busqueda? (s/n): ").strip().lower()
+                        
+                        # Preguntar si otro del mismo resultado
+                        otro = input("\n❓ Reproducir otro video de esta busqueda? (s/n): ").strip().lower()
                         if otro not in ['s', 'si', 'y']:
                             break
                     else:
                         print(f"Numero debe ser entre 1 y {len(videos)}")
                 else:
-                    print("Ingresa un numero valido")
-
+                    print("Por favor ingresa un numero valido")
+                    
         except KeyboardInterrupt:
-            print("\n\nHasta luego!")
+            print("\n\n👋 Hasta luego!")
             break
         except Exception as e:
-            print(f"\nError inesperado: {e}")
-            # En caso de error, volvemos al inicio del bucle
+            print(f"\nError: {e}")
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
         print(f"\nError fatal: {e}")
-        sys.exit(1)
