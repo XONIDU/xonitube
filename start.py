@@ -6,8 +6,8 @@ XONITUBE 2026 - Lanzador Universal
 Este script es el ENCARGADO de ejecutar xonitube.py
 Detecta automáticamente el sistema y verifica dependencias
 Desarrollado por: Darian Alberto Camacho Salas
+SOMOS XONIDU
 """
-
 import subprocess
 import sys
 import os
