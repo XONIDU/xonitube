@@ -94,12 +94,30 @@ CALIDADES DISPONIBLES:
   9. Solo audio (sin video)
 ```
 
-### 5️⃣ Controlar reproducción
+### 5️⃣ Elegir acción
+```
+OPCIONES:
+  1. Reproducir ahora (streaming)
+  2. Guardar y luego reproducir
+  3. Solo guardar (no reproducir)
+```
+
+### 6️⃣ Controlar reproducción
 - **← →** : Retroceder/Avanzar 5 segundos
 - **Space** : Pausa/Reanudar
 - **↑ ↓** : Subir/Bajar volumen
 - **q** : Salir de la reproducción
 - **Ctrl+C** : Volver al menú
+
+## 💾 **DESCARGAS**
+
+Los videos que decidas guardar se almacenan automáticamente en:
+
+```
+Windows: C:\Users\TuUsuario\Videos\XoniTube\
+Linux:   /home/tu_usuario/Videos/XoniTube/
+Mac:     /Users/tu_usuario/Videos/XoniTube/
+```
 
 ## 🔧 **PROBLEMAS COMUNES (Y SOLUCIONES)**
 
@@ -137,7 +155,7 @@ mpv --vo=help
 ```
 
 ### ❌ **"La ventana se maximiza y da lag"**
-El programa ya fuerza un tamaño fijo de **640x360** para evitar lag. Si aún así maximizas, tendrás descincronización.
+El programa ya fuerza un tamaño fijo de **640x360** para evitar lag. Si aún así maximizas, tendrás descincronización. Usa la opción de descarga para ver el video sin lag.
 
 ## ⚡ **OPTIMIZADO PARA 1GB RAM**
 
@@ -148,6 +166,7 @@ El programa ya fuerza un tamaño fijo de **640x360** para evitar lag. Si aún as
 | Backend video | x11 | Máxima compatibilidad |
 | Sin subtítulos | Sí | Ahorra CPU |
 | Perfil rápido | Sí | Decodificación eficiente |
+| Descarga local | Opcional | Ver sin lag después de descargar |
 
 ## 📞 **¿NECESITAS AYUDA?**
 
@@ -160,29 +179,33 @@ El programa ya fuerza un tamaño fijo de **640x360** para evitar lag. Si aún as
 | ✅ SÍ | ❌ NO |
 |-------|-------|
 | Ver videos de YouTube | Descargar contenido con copyright |
-| Aprender automatización | Usarlo comercialmente |
-| Probar en tu Eee PC | Quitar los créditos |
-| Compartir el código | Infringir términos de servicio |
+| Guardar videos para ver offline | Usarlo comercialmente |
+| Aprender automatización | Quitar los créditos |
+| Probar en tu Eee PC | Infringir términos de servicio |
 
 ## 📋 **NOTAS IMPORTANTES**
 
 - ✅ Funciona en **Windows, Linux y Mac** con Python 3.6+
 - ✅ **Instalación automática** de dependencias vía `start.py`
 - ✅ Optimizado para **1GB RAM** y procesadores antiguos
-- ✅ **No guarda archivos temporales** (streaming directo)
+- ✅ **Opción de guardar video** antes de reproducir
 - ✅ **Ventana de tamaño fijo** para evitar lag
 - ✅ Soporta **9 calidades diferentes** (desde peor hasta solo audio)
+- ✅ Los videos guardados se almacenan en **~/Videos/XoniTube/**
 
 ## 🎉 **¡LISTO!**
 
 ```
-╔════════════════════════════════════╗
-║   XONITUBE 2026 - Hecho con ❤️     ║
-║   por Darian Alberto Camacho Salas ║
-║                                    ║
-║   ¡SOLO EJECUTA start.py!          ║
-║   Él instala todo automáticamente  ║
-╚════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════╗
+║   XONITUBE 2026 - Hecho con ❤️                           ║
+║   por Darian Alberto Camacho Salas                       ║
+║                                                          ║
+║   Características:                                       ║
+║   • Streaming directo o descarga                        ║
+║   • Optimizado para 1GB RAM                             ║
+║   • Instalación automática                              ║
+║   • Ventana fija sin lag                                ║
+╚══════════════════════════════════════════════════════════╝
 ```
 
 **XONIDU** - Enseñando automatización, construyendo conocimiento
