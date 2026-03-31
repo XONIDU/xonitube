@@ -5,17 +5,24 @@
 XoniTube v5.0 - Buscador ultra optimizado
 Creado por Darian Alberto Camacho Salas
 Consumo minimo de recursos - Sin limites de tiempo
+Opcion de guardar video antes de reproducir
 """
 
 import subprocess
 import sys
 import os
+import time
 
 # ============================================================================
 # CONFIGURACION OPTIMIZADA
 # ============================================================================
 
 REPRODUCTOR = "mpv"
+DOWNLOAD_DIR = os.path.expanduser("~/Videos/XoniTube")  # Directorio para descargas
+
+# Crear directorio de descargas si no existe
+if not os.path.exists(DOWNLOAD_DIR):
+    os.makedirs(DOWNLOAD_DIR)
 
 # ============================================================================
 # FUNCIONES
@@ -50,10 +57,14 @@ def buscar_videos(termino, cantidad):
         for linea in resultado.stdout.strip().split('\n'):
             if '|' in linea:
                 titulo, vid = linea.split('|', 1)
+                # Limpiar titulo de caracteres invalidos para nombre de archivo
+                nombre_limpio = titulo.strip()[:70]
+                nombre_limpio = "".join(c for c in nombre_limpio if c.isalnum() or c in ' ._-')
                 videos.append({
                     'num': len(videos) + 1,
                     'tit': titulo.strip()[:70],
-                    'url': f"https://youtu.be/{vid.strip()}"
+                    'url': f"https://youtu.be/{vid.strip()}",
+                    'nombre': nombre_limpio
                 })
         
         return videos if videos else None
@@ -70,9 +81,67 @@ def mostrar_resultados(videos):
         print(f"\n{v['num']}. {v['tit']}")
     print("\n" + "="*70)
 
-def reproducir(url, calidad, nombre_calidad):
+def descargar_video(url, calidad, nombre):
+    """Descarga el video antes de reproducirlo"""
+    print(f"\nDescargando: {nombre}...")
+    
+    # Generar nombre de archivo seguro
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    filename = f"{nombre}_{timestamp}.mp4"
+    filepath = os.path.join(DOWNLOAD_DIR, filename)
+    
+    try:
+        cmd = [
+            "yt-dlp",
+            "-f", calidad,
+            "-o", filepath,
+            "--no-warnings",
+            "--quiet",
+            url
+        ]
+        
+        subprocess.run(cmd, check=True)
+        print(f"Descarga completada: {filepath}")
+        return filepath
+        
+    except Exception as e:
+        print(f"Error en descarga: {e}")
+        return None
+
+def reproducir_local(filepath):
+    """Reproduce un archivo local descargado"""
+    if not filepath or not os.path.exists(filepath):
+        return False
+    
+    print(f"\nReproduciendo archivo local...")
+    print("  CONTROLES MPV:")
+    print("    ← → : Retroceder/Avanzar 5s")
+    print("    Space : Pausa")
+    print("    ↑ ↓ : Volumen")
+    print("    q : Salir")
+    print("-"*50)
+    
+    try:
+        mpv_cmd = [
+            REPRODUCTOR,
+            "--cache=yes",
+            "--cache-secs=30",
+            filepath
+        ]
+        
+        subprocess.run(mpv_cmd)
+        return True
+        
+    except KeyboardInterrupt:
+        print("\n\nReproduccion detenida")
+        return True
+    except Exception as e:
+        print(f"\nError: {e}")
+        return False
+
+def reproducir_stream(url, calidad, nombre_calidad):
     """
-    Reproduccion simple
+    Reproduccion directa sin descargar
     """
     print(f"\nReproduciendo en {nombre_calidad}...")
     print("  Presiona Ctrl+C para volver al menu\n")
@@ -111,6 +180,25 @@ def reproducir(url, calidad, nombre_calidad):
     except Exception as e:
         print(f"\nError: {e}")
         return False
+
+def preguntar_accion():
+    """Pregunta al usuario si quiere reproducir o guardar"""
+    print("\n" + "="*50)
+    print("OPCIONES".center(50))
+    print("="*50)
+    print("  1. Reproducir ahora (streaming)")
+    print("  2. Guardar y luego reproducir")
+    print("  3. Solo guardar (no reproducir)")
+    print("-"*50)
+    
+    while True:
+        op = input("Elige una opcion (1-3, Enter=1): ").strip()
+        
+        if op == "":
+            return 1
+        if op in ['1', '2', '3']:
+            return int(op)
+        print("Opcion invalida")
 
 def preguntar_cantidad():
     """Pregunta simple"""
@@ -181,6 +269,7 @@ def main():
     print("\nINSTRUCCIONES:")
     print("  • Escribe lo que quieres buscar")
     print("  • Ejemplo: r u mine, kendrick lamar, bad bunny")
+    print("  • Los videos descargados se guardan en: ~/Videos/XoniTube/")
     print("  • Escribe 'salir' para terminar")
     print("="*70)
     
@@ -221,8 +310,24 @@ def main():
                         # Preguntar calidad
                         formato, nombre_calidad = preguntar_calidad()
                         
-                        # Reproducir
-                        reproducir(videos[idx]['url'], formato, nombre_calidad)
+                        # Preguntar que hacer
+                        accion = preguntar_accion()
+                        
+                        if accion == 1:
+                            # Solo reproducir streaming
+                            reproducir_stream(videos[idx]['url'], formato, nombre_calidad)
+                        
+                        elif accion == 2:
+                            # Descargar y luego reproducir
+                            archivo = descargar_video(videos[idx]['url'], formato, videos[idx]['nombre'])
+                            if archivo:
+                                reproducir_local(archivo)
+                        
+                        elif accion == 3:
+                            # Solo descargar
+                            archivo = descargar_video(videos[idx]['url'], formato, videos[idx]['nombre'])
+                            if archivo:
+                                print(f"\nVideo guardado en: {archivo}")
                         
                         # Preguntar si otro del mismo resultado
                         otro = input("\nReproducir otro video de esta busqueda? (s/n): ").strip().lower()
