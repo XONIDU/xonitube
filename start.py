@@ -83,6 +83,8 @@ def get_linux_distro():
                     return 'mint'
                 elif 'opensuse' in content:
                     return 'opensuse'
+                elif 'antix' in content:
+                    return 'antix'
         
         try:
             result = subprocess.run(['lsb_release', '-i'], capture_output=True, text=True)
@@ -94,6 +96,8 @@ def get_linux_distro():
                 return 'fedora'
             elif 'CentOS' in result.stdout:
                 return 'centos'
+            elif 'antiX' in result.stdout:
+                return 'antix'
         except:
             pass
         
@@ -129,7 +133,7 @@ def print_banner():
     
     banner = f"""
 {Colors.BLUE}{Colors.BOLD}╔══════════════════════════════════════════════════════════╗
-║                     XONITUBE 2026 v5.7                      ║
+║                     XONITUBE 2026 v5.8                      ║
 ║              Reproductor de YouTube desde Terminal           ║
 ║                   Optimizado para 1GB RAM                    ║
 ║                                                            ║
@@ -150,6 +154,41 @@ def check_python():
     except:
         return False
 
+def check_pip():
+    """Verifica que pip está instalado y funciona"""
+    try:
+        cmd = [sys.executable, '-m', 'pip', '--version']
+        subprocess.run(cmd, capture_output=True, check=True)
+        return True
+    except:
+        return False
+
+def install_pip_linux(distro):
+    """Instala pip en Linux según la distribución"""
+    print(f"{Colors.YELLOW}Instalando pip en {distro}...{Colors.END}")
+    
+    try:
+        if distro in ['ubuntu', 'debian', 'mint', 'antix']:
+            subprocess.run(['sudo', 'apt', 'update'], check=False)
+            subprocess.run(['sudo', 'apt', 'install', '-y', 'python3-pip'], check=True)
+        elif distro in ['arch', 'manjaro']:
+            subprocess.run(['sudo', 'pacman', '-Sy', '--noconfirm', 'python-pip'], check=True)
+        elif distro in ['fedora']:
+            subprocess.run(['sudo', 'dnf', 'install', '-y', 'python3-pip'], check=True)
+        elif distro in ['centos', 'rhel']:
+            subprocess.run(['sudo', 'yum', 'install', '-y', 'python3-pip'], check=True)
+        elif distro in ['opensuse']:
+            subprocess.run(['sudo', 'zypper', 'install', '-y', 'python3-pip'], check=True)
+        else:
+            print(f"{Colors.RED}Distribución no reconocida para instalación automática de pip{Colors.END}")
+            return False
+        
+        print(f"{Colors.GREEN}pip instalado correctamente{Colors.END}")
+        return True
+    except Exception as e:
+        print(f"{Colors.RED}Error instalando pip: {e}{Colors.END}")
+        return False
+
 def check_mpv():
     """Verifica si mpv está instalado"""
     return check_command('mpv')
@@ -163,7 +202,7 @@ def install_mpv_linux(distro):
     print(f"{Colors.YELLOW}Instalando mpv en {distro}...{Colors.END}")
     
     try:
-        if distro in ['ubuntu', 'debian', 'mint']:
+        if distro in ['ubuntu', 'debian', 'mint', 'antix']:
             subprocess.run(['sudo', 'apt', 'update'], check=False)
             subprocess.run(['sudo', 'apt', 'install', '-y', 'mpv'], check=True)
         elif distro in ['arch', 'manjaro']:
@@ -175,7 +214,7 @@ def install_mpv_linux(distro):
         elif distro == 'opensuse':
             subprocess.run(['sudo', 'zypper', 'install', '-y', 'mpv'], check=True)
         else:
-            print(f"{Colors.RED}Distribución no reconocida para instalación automática{Colors.END}")
+            print(f"{Colors.RED}Distribución no reconocida para instalación automática de mpv{Colors.END}")
             return False
         
         print(f"{Colors.GREEN}mpv instalado correctamente{Colors.END}")
@@ -189,7 +228,7 @@ def install_ytdlp_linux(distro):
     print(f"{Colors.YELLOW}Instalando yt-dlp en {distro}...{Colors.END}")
     
     try:
-        if distro in ['ubuntu', 'debian', 'mint']:
+        if distro in ['ubuntu', 'debian', 'mint', 'antix']:
             subprocess.run(['sudo', 'apt', 'update'], check=False)
             subprocess.run(['sudo', 'apt', 'install', '-y', 'yt-dlp'], check=True)
         elif distro in ['arch', 'manjaro']:
@@ -198,7 +237,9 @@ def install_ytdlp_linux(distro):
             subprocess.run(['sudo', 'dnf', 'install', '-y', 'yt-dlp'], check=True)
         else:
             # Usar pip como respaldo
-            subprocess.run([sys.executable, '-m', 'pip', 'install', 'yt-dlp', '--break-system-packages'], check=True)
+            if not check_pip():
+                install_pip_linux(distro)
+            subprocess.run([sys.executable, '-m', 'pip', 'install', 'yt-dlp'], check=True)
         
         print(f"{Colors.GREEN}yt-dlp instalado correctamente{Colors.END}")
         return True
@@ -285,6 +326,12 @@ def install_all_dependencies(mpv_falta, ytdlp_falta):
     distro = get_linux_distro()
     
     print(f"\n{Colors.BOLD}Instalando dependencias faltantes...{Colors.END}")
+    
+    # Primero asegurar pip si es necesario (para yt-dlp)
+    if sistema == 'linux' and ytdlp_falta:
+        if not check_pip():
+            if not install_pip_linux(distro):
+                print(f"{Colors.YELLOW}No se pudo instalar pip. Continuando...{Colors.END}")
     
     success = True
     
@@ -432,7 +479,7 @@ def mostrar_instrucciones_python():
         print(f"   IMPORTANTE: Al instalar, marca 'Add Python to PATH'")
         print(f"   Luego cierra y vuelve a abrir la terminal")
     elif sistema == 'linux':
-        if distro in ['ubuntu', 'debian', 'mint']:
+        if distro in ['ubuntu', 'debian', 'mint', 'antix']:
             print(f"   Instala con: sudo apt update && sudo apt install python3 python3-pip")
         elif distro in ['fedora', 'centos']:
             print(f"   Instala con: sudo dnf install python3 python3-pip")
@@ -479,6 +526,11 @@ def main():
     python_version = subprocess.run(get_python_command() + ['--version'], 
                                    capture_output=True, text=True).stdout.strip()
     print(f"{Colors.BOLD}Python:{Colors.END} {python_version}")
+    
+    # Verificar pip en Linux (opcional, se puede instalar)
+    if sistema == 'linux' and not check_pip():
+        print(f"\n{Colors.YELLOW}pip no encontrado. Intentando instalar...{Colors.END}")
+        install_pip_linux(distro)
     
     # Verificar dependencias
     mpv_falta, ytdlp_falta = check_dependencies()
