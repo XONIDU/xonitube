@@ -5,7 +5,7 @@
 XONITUBE 2026 - Lanzador Universal (Robusto)
 Reproductor de YouTube desde terminal para 1GB RAM
 Incluye instalación automática de pip, yt-dlp y mpv
-Desarrollado por: Darian Alberto Camacho Salas
+Desarrollador: Darian Alberto Camacho Salas
 Organización: XONIDU
 """
 
