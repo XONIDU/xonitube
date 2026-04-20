@@ -46,23 +46,6 @@ if not Colors.supports_color():
             setattr(Colors, attr, '')
 
 # ============================================================================
-# Configuración fija de rutas
-# ============================================================================
-def get_xonitube_dir():
-    """Devuelve la ruta fija donde está instalado XONITUBE"""
-    usuario = os.path.expanduser("~")
-    nombre_usuario = os.path.basename(usuario)
-    return os.path.join('/home', nombre_usuario, 'xonitube')
-
-def get_xonitube_path():
-    """Devuelve la ruta completa a xonitube.py"""
-    return os.path.join(get_xonitube_dir(), 'xonitube.py')
-
-def get_start_py_path():
-    """Devuelve la ruta completa a start.py (donde está este script)"""
-    return os.path.abspath(__file__)
-
-# ============================================================================
 # Detección del sistema
 # ============================================================================
 def get_system():
@@ -125,24 +108,64 @@ def get_install_flags():
         flags.append('--user')
     return flags
 
+def get_script_dir():
+    """Obtiene el directorio donde está guardado este script (start.py)"""
+    return os.path.dirname(os.path.abspath(__file__))
+
+def get_fixed_xonitube_dir():
+    """Devuelve la ruta fija /home/usuario/xonitube/"""
+    usuario = os.path.expanduser("~")
+    nombre_usuario = os.path.basename(usuario)
+    return os.path.join('/home', nombre_usuario, 'xonitube')
+
+def get_xonitube_path():
+    """
+    Detecta la ruta de xonitube.py:
+    1. Primero busca en el mismo directorio que start.py
+    2. Si no, usa la ruta fija /home/usuario/xonitube/
+    """
+    script_dir = get_script_dir()
+    ruta_local = os.path.join(script_dir, 'xonitube.py')
+    
+    if os.path.exists(ruta_local):
+        return ruta_local, 'local'
+    
+    ruta_fija = os.path.join(get_fixed_xonitube_dir(), 'xonitube.py')
+    if os.path.exists(ruta_fija):
+        return ruta_fija, 'fija'
+    
+    # Si no existe en ningún lado, devolvemos la local como predeterminada
+    return ruta_local, 'ninguna'
+
+def get_xonitube_dir():
+    """Devuelve el directorio donde está xonitube.py"""
+    ruta, _ = get_xonitube_path()
+    return os.path.dirname(ruta)
+
 def print_banner():
     sistema = get_system()
     distro = get_linux_distro()
-    xonitube_dir = get_xonitube_dir()
+    ruta_xonitube, origen = get_xonitube_path()
     sistema_texto = {
         'windows': 'WINDOWS',
         'linux': f'LINUX ({distro.upper()})' if distro else 'LINUX',
         'darwin': 'MACOS'
     }.get(sistema, 'DESCONOCIDO')
     
+    origen_texto = {
+        'local': 'MISMO DIRECTORIO',
+        'fija': '/HOME/USUARIO/XONITUBE',
+        'ninguna': 'NO ENCONTRADO'
+    }.get(origen, 'DESCONOCIDO')
+    
     banner = f"""
 {Colors.PURPLE}{Colors.BOLD}╔══════════════════════════════════════════════════════════╗
-║                     XONITUBE 2026 v6.2                      ║
+║                     XONITUBE 2026 v6.3                      ║
 ║              Reproductor de YouTube desde Terminal           ║
 ║                   Optimizado para 1GB RAM                    ║
 ║                                                            ║
 ║               Sistema detectado: {sistema_texto:<27} ║
-║               Directorio fijo: {xonitube_dir:<27} ║
+║               Origen xonitube.py: {origen_texto:<27} ║
 ║                                                            ║
 ║               Desarrollado por: Darian Alberto             ║
 ║                      Camacho Salas                         ║
@@ -326,11 +349,12 @@ def install_ytdlp():
 # Verificación de xonitube.py y ejecución
 # ============================================================================
 def check_xonitube():
-    xonitube_path = get_xonitube_path()
-    exists = os.path.exists(xonitube_path)
-    if not exists:
-        print(f"{Colors.RED}❌ No se encuentra xonitube.py en: {xonitube_path}{Colors.END}")
-    return exists
+    ruta, origen = get_xonitube_path()
+    existe = os.path.exists(ruta)
+    if not existe:
+        print(f"{Colors.RED}❌ No se encuentra xonitube.py{Colors.END}")
+        print(f"   Buscado en: {ruta}")
+    return existe
 
 def main():
     # Limpiar pantalla
@@ -343,19 +367,19 @@ def main():
     
     sistema = get_system()
     distro = get_linux_distro()
+    script_dir = get_script_dir()
+    ruta_xonitube, origen = get_xonitube_path()
     xonitube_dir = get_xonitube_dir()
-    xonitube_path = get_xonitube_path()
-    start_py_path = get_start_py_path()
     
     print(f"{Colors.BOLD}Sistema operativo:{Colors.END} {sistema}")
     if distro:
         print(f"{Colors.BOLD}Distribución:{Colors.END} {distro}")
-    print(f"{Colors.BOLD}Directorio fijo XONITUBE:{Colors.END} {xonitube_dir}")
-    print(f"{Colors.BOLD}xonitube.py esperado:{Colors.END} {xonitube_path}")
-    print(f"{Colors.BOLD}start.py ejecutado desde:{Colors.END} {start_py_path}")
+    print(f"{Colors.BOLD}Directorio de start.py:{Colors.END} {script_dir}")
+    print(f"{Colors.BOLD}Origen de xonitube.py:{Colors.END} {origen}")
+    print(f"{Colors.BOLD}Ruta de xonitube.py:{Colors.END} {ruta_xonitube}")
     
-    # Verificar que el directorio fijo existe, si no, crearlo
-    if not os.path.exists(xonitube_dir):
+    # Verificar que el directorio de xonitube existe, si no, crearlo (solo para ruta fija)
+    if origen == 'ninguna' and not os.path.exists(xonitube_dir):
         print(f"\n{Colors.YELLOW}⚠️ El directorio {xonitube_dir} no existe. Creándolo...{Colors.END}")
         os.makedirs(xonitube_dir, exist_ok=True)
         print(f"{Colors.GREEN}✓ Directorio creado: {xonitube_dir}{Colors.END}")
@@ -426,16 +450,18 @@ def main():
     else:
         print(f"{Colors.GREEN}✓ mpv disponible{Colors.END}")
     
-    # Verificar que existe xonitube.py en la ruta fija
+    # Verificar que existe xonitube.py
     if not check_xonitube():
         print(f"\n{Colors.RED}❌ Error crítico: No se encuentra xonitube.py{Colors.END}")
-        print(f"   Asegúrate de que xonitube.py esté en: {xonitube_dir}")
-        print(f"   Puedes copiarlo manualmente o reinstalar XONITUBE.")
+        if origen == 'ninguna':
+            print(f"   Puedes copiar xonitube.py a:")
+            print(f"     - {script_dir} (donde está start.py)")
+            print(f"     - O a {get_fixed_xonitube_dir()}")
         sys.exit(1)
     
-    # Cambiar al directorio fijo de XONITUBE
+    # Cambiar al directorio de xonitube.py
     os.chdir(xonitube_dir)
-    print(f"{Colors.GREEN}✓ Cambiando al directorio fijo: {xonitube_dir}{Colors.END}")
+    print(f"{Colors.GREEN}✓ Cambiando al directorio: {xonitube_dir}{Colors.END}")
     
     # Ejecutar xonitube.py
     print(f"\n{Colors.BOLD}🚀 Iniciando XONITUBE...{Colors.END}")
