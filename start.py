@@ -114,6 +114,7 @@ def get_script_dir():
 def print_banner():
     sistema = get_system()
     distro = get_linux_distro()
+    script_dir = get_script_dir()
     sistema_texto = {
         'windows': 'WINDOWS',
         'linux': f'LINUX ({distro.upper()})' if distro else 'LINUX',
@@ -122,11 +123,12 @@ def print_banner():
     
     banner = f"""
 {Colors.PURPLE}{Colors.BOLD}╔══════════════════════════════════════════════════════════╗
-║                     XONITUBE 2026 v6.0                      ║
+║                     XONITUBE 2026 v6.1                      ║
 ║              Reproductor de YouTube desde Terminal           ║
 ║                   Optimizado para 1GB RAM                    ║
 ║                                                            ║
 ║               Sistema detectado: {sistema_texto:<27} ║
+║               Directorio XONITUBE: {os.path.basename(script_dir):<20} ║
 ║                                                            ║
 ║               Desarrollado por: Darian Alberto             ║
 ║                      Camacho Salas                         ║
@@ -315,7 +317,11 @@ def get_xonitube_path():
     return os.path.join(script_dir, 'xonitube.py')
 
 def check_xonitube():
-    return os.path.exists(get_xonitube_path())
+    xonitube_path = get_xonitube_path()
+    exists = os.path.exists(xonitube_path)
+    if not exists:
+        print(f"{Colors.RED}❌ No se encuentra xonitube.py en: {xonitube_path}{Colors.END}")
+    return exists
 
 def main():
     # Limpiar pantalla
@@ -329,12 +335,13 @@ def main():
     sistema = get_system()
     distro = get_linux_distro()
     script_dir = get_script_dir()
+    xonitube_path = get_xonitube_path()
     
     print(f"{Colors.BOLD}Sistema operativo:{Colors.END} {sistema}")
     if distro:
         print(f"{Colors.BOLD}Distribución:{Colors.END} {distro}")
-    print(f"{Colors.BOLD}Directorio del script:{Colors.END} {script_dir}")
-    print(f"{Colors.BOLD}Directorio actual:{Colors.END} {os.getcwd()}")
+    print(f"{Colors.BOLD}Directorio XONITUBE:{Colors.END} {script_dir}")
+    print(f"{Colors.BOLD}xonitube.py:{Colors.END} {xonitube_path}")
     
     # Verificar Python
     if not check_python():
@@ -369,7 +376,7 @@ def main():
             print(f"{Colors.RED}Fallo crítico: no se pudo instalar yt-dlp. Abortando.{Colors.END}")
             sys.exit(1)
     else:
-        # Incluso si existe, intentamos actualizar (opcional, pero recomendado)
+        # Incluso si existe, intentamos actualizar
         print(f"\n{Colors.CYAN}yt-dlp encontrado. Actualizando a la última versión...{Colors.END}")
         install_ytdlp()
     
@@ -402,17 +409,15 @@ def main():
     else:
         print(f"{Colors.GREEN}✓ mpv disponible{Colors.END}")
     
-    # Verificar que existe xonitube.py en el mismo directorio que start.py
-    xonitube_path = get_xonitube_path()
-    if not os.path.exists(xonitube_path):
-        print(f"\n{Colors.RED}❌ No se encuentra {xonitube_path}{Colors.END}")
-        print(f"   Asegúrate de que xonitube.py esté en el mismo directorio que start.py")
+    # Verificar que existe xonitube.py
+    if not check_xonitube():
+        print(f"\n{Colors.RED}❌ Error crítico: No se encuentra xonitube.py{Colors.END}")
+        print(f"   Asegúrate de que xonitube.py esté en: {script_dir}")
         sys.exit(1)
-    else:
-        print(f"{Colors.GREEN}✓ Encontrado: {xonitube_path}{Colors.END}")
     
     # Cambiar al directorio del script para ejecutar xonitube.py correctamente
     os.chdir(script_dir)
+    print(f"{Colors.GREEN}✓ Cambiando al directorio: {script_dir}{Colors.END}")
     
     # Ejecutar xonitube.py
     print(f"\n{Colors.BOLD}🚀 Iniciando XONITUBE...{Colors.END}")
