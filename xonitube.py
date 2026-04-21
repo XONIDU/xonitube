@@ -159,7 +159,7 @@ class XONITUBE:
                 REPRODUCTOR,
                 "--cache=yes",
                 "--cache-secs=30",
-                "--geometry", TAMANO_VENTANA,
+                f"--geometry={TAMANO_VENTANA}",
                 "--ontop",
                 filepath
             ]
@@ -190,7 +190,7 @@ class XONITUBE:
                 REPRODUCTOR,
                 "--cache=yes",
                 "--cache-secs=30",
-                "--geometry", TAMANO_VENTANA,
+                f"--geometry={TAMANO_VENTANA}",
                 "--ontop",
                 "-"
             ]
