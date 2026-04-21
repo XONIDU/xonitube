@@ -11,8 +11,35 @@ Este código tiene **únicamente fines educativos y de uso personal**. No debe u
 xonitube/
 ├── start.py                 # 🟢 LANZADOR UNIVERSAL (¡SOLO EJECUTA ESTE!)
 ├── xonitube.py              # 🔵 PROGRAMA PRINCIPAL (buscador/reproductor)
-├── requisitos.txt           # Dependencias del proyecto
+├── requirements.txt         # Dependencias del proyecto
 └── README.md                # Este archivo
+```
+
+## 🚀 **MÉTODOS DE INSTALACIÓN**
+
+### 📦 Opción 1: Instalación desde AUR (Arch Linux)
+```bash
+yay -S xonitube
+xonitube
+```
+
+### 🐙 Opción 2: Instalación desde GitHub
+```bash
+# Clonar el repositorio
+git clone https://github.com/XONIDU/xonitube.git
+cd xonitube
+
+# Ejecutar el lanzador
+python3 start.py
+```
+
+### 📥 Opción 3: Instalación manual
+```bash
+# Descargar el ZIP desde GitHub
+wget https://github.com/XONIDU/xonitube/archive/refs/heads/main.zip
+unzip main.zip
+cd xonitube-main
+python3 start.py
 ```
 
 ## 🚀 **ASÍ DE FÁCIL: SOLO EJECUTA start.py**
@@ -31,8 +58,6 @@ xonitube/
 python start.py
 ```
 
-El instalador automático te guiará para instalar mpv y yt-dlp si es necesario.
-
 ## 🐧 **PARA LINUX**
 
 ```bash
@@ -40,28 +65,12 @@ El instalador automático te guiará para instalar mpv y yt-dlp si es necesario.
 python3 start.py
 ```
 
-En distribuciones como Ubuntu/Debian/Arch, **start.py instalará mpv y yt-dlp automáticamente** (solicitará contraseña sudo).
-
 ## 🍎 **PARA macOS**
 
 ```bash
 # Abre terminal y escribe:
 python3 start.py
 ```
-
-Si tienes Homebrew, **start.py instalará mpv y yt-dlp automáticamente**.
-
-## 📦 **¿QUÉ HACE start.py POR DENTRO?**
-
-Cuando ejecutas `start.py`, automáticamente:
-
-1. 🔍 **Detecta** si estás en Windows, Linux o Mac
-2. 📋 **Verifica** si tienes instalado Python, mpv y yt-dlp
-3. 📥 **Instala automáticamente** las dependencias que faltan:
-   - **Linux:** Ejecuta `sudo apt install mpv yt-dlp` (o `pacman -S` en Arch)
-   - **Mac:** Ejecuta `brew install mpv` y `pip install yt-dlp`
-   - **Windows:** Muestra instrucciones y ofrece instalación automática de yt-dlp
-4. 🚀 **Ejecuta** `xonitube.py` (el programa principal)
 
 ## 🎯 **CÓMO USAR XONITUBE**
 
@@ -121,6 +130,18 @@ Mac:     /Users/tu_usuario/Videos/XoniTube/
 
 ## 🔧 **PROBLEMAS COMUNES (Y SOLUCIONES)**
 
+### ❌ **"Error parsing commandline option geometry"**
+El error ya está corregido en la versión v6.4.1. Actualiza:
+```bash
+# Desde AUR
+yay -S xonitube --rebuild
+
+# Desde GitHub
+cd xonitube
+git pull
+python3 start.py
+```
+
 ### ❌ **"Python no está instalado"**
 ```bash
 # Descarga Python desde:
@@ -129,7 +150,6 @@ https://www.python.org/downloads/
 
 ### ❌ **"No se encontró el comando mpv" en Linux**
 ```bash
-# start.py ya lo instala automáticamente, pero si falla:
 # Debian/Ubuntu
 sudo apt install mpv
 
@@ -139,7 +159,6 @@ sudo pacman -S mpv
 
 ### ❌ **"No se encontró el comando yt-dlp" en Linux**
 ```bash
-# start.py ya lo instala automáticamente, pero si falla:
 # Debian/Ubuntu
 sudo apt install yt-dlp
 
@@ -149,13 +168,16 @@ sudo pacman -S yt-dlp
 
 ### ❌ **"Se escucha audio pero no se ve video"**
 ```bash
-# start.py ya configura el backend x11 automáticamente
-# Si persiste, verificar backends disponibles:
+# Verificar backends disponibles:
 mpv --vo=help
+
+# Instalar controladores si es necesario:
+sudo pacman -S xf86-video-intel  # Intel
+sudo pacman -S xf86-video-nouveau # NVIDIA
 ```
 
 ### ❌ **"La ventana se maximiza y da lag"**
-El programa ya fuerza un tamaño fijo de **640x360** para evitar lag. Si aún así maximizas, tendrás descincronización. Usa la opción de descarga para ver el video sin lag.
+El programa ya fuerza un tamaño fijo de **640x360** para evitar lag. Usa la opción de descarga (opción 2 o 3) para ver el video sin lag.
 
 ## ⚡ **OPTIMIZADO PARA 1GB RAM**
 
@@ -170,9 +192,10 @@ El programa ya fuerza un tamaño fijo de **640x360** para evitar lag. Si aún as
 
 ## 📞 **¿NECESITAS AYUDA?**
 
-- 📸 **Instagram:** [@xonidu](https://instagram.com/xonidu)
+- 📸 **Instagram:** @xonidu
 - 📧 **Email:** xonidu@gmail.com
-- 💻 **GitHub:** [XONIDU/xonitube](https://github.com/XONIDU/xonitube)
+- 💻 **GitHub:** XONIDU/xonitube
+- 📦 **AUR:** xonitube
 
 ## ✅ **LO QUE PUEDES HACER (Y LO QUE NO)**
 
@@ -192,6 +215,18 @@ El programa ya fuerza un tamaño fijo de **640x360** para evitar lag. Si aún as
 - ✅ **Ventana de tamaño fijo** para evitar lag
 - ✅ Soporta **9 calidades diferentes** (desde peor hasta solo audio)
 - ✅ Los videos guardados se almacenan en **~/Videos/XoniTube/**
+
+## 🔄 **ACTUALIZAR XONITUBE**
+
+```bash
+# Desde AUR
+yay -S xonitube --rebuild
+
+# Desde GitHub
+cd xonitube
+git pull
+python3 start.py
+```
 
 ## 🎉 **¡LISTO!**
 
