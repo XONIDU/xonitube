@@ -34,7 +34,6 @@ REPRODUCTOR = "mpv"
 DOWNLOAD_DIR = os.path.expanduser("~/Videos/XoniTube")
 TAMANO_VENTANA = "640x360"
 
-# Crear directorio de descargas si no existe
 if not os.path.exists(DOWNLOAD_DIR):
     os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
@@ -76,9 +75,7 @@ class XONITUBE:
         print("")
     
     def buscar_videos(self, termino, cantidad):
-        """Busca videos en YouTube"""
         print(f"\n{Colors.CYAN}Buscando: '{termino}'...{Colors.END}")
-        
         try:
             cmd = [
                 "yt-dlp",
@@ -88,12 +85,9 @@ class XONITUBE:
                 "--print", "%(title)s|%(id)s",
                 f"ytsearch{cantidad}:{termino}"
             ]
-            
             resultado = subprocess.run(cmd, capture_output=True, text=True)
-            
             if resultado.returncode != 0:
                 return None
-            
             videos = []
             for linea in resultado.stdout.strip().split('\n'):
                 if '|' in linea:
@@ -104,15 +98,12 @@ class XONITUBE:
                         'url': f"https://youtu.be/{vid.strip()}",
                         'nombre': titulo.strip()[:50].replace('/', '_').replace(':', '_')
                     })
-            
             return videos if videos else None
-            
         except Exception as e:
             print(f"{Colors.RED}Error: {e}{Colors.END}")
             return None
     
     def mostrar_resultados(self, videos):
-        """Muestra la lista de resultados"""
         print("\n" + "="*60)
         print("RESULTADOS".center(60))
         print("="*60)
@@ -121,48 +112,26 @@ class XONITUBE:
         print("\n" + "="*60)
     
     def descargar_video(self, url, calidad, nombre):
-        """Descarga el video"""
         print(f"\n{Colors.YELLOW}Descargando: {nombre}...{Colors.END}")
-        
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         filename = f"{nombre}_{timestamp}.mp4"
         filepath = os.path.join(DOWNLOAD_DIR, filename)
-        
         try:
-            cmd = [
-                "yt-dlp",
-                "-f", calidad,
-                "-o", filepath,
-                "--no-warnings",
-                "--quiet",
-                url
-            ]
-            
+            cmd = ["yt-dlp", "-f", calidad, "-o", filepath, "--no-warnings", "--quiet", url]
             subprocess.run(cmd, check=True)
             print(f"{Colors.GREEN}✓ Descarga completada: {filepath}{Colors.END}")
             return filepath
-            
         except Exception as e:
             print(f"{Colors.RED}Error en descarga: {e}{Colors.END}")
             return None
     
     def reproducir_local(self, filepath):
-        """Reproduce archivo local"""
         if not filepath or not os.path.exists(filepath):
             return False
-        
         print(f"\n{Colors.GREEN}▶ Reproduciendo archivo local...{Colors.END}")
         self.mostrar_controles()
-        
         try:
-            cmd = [
-                REPRODUCTOR,
-                "--cache=yes",
-                "--cache-secs=30",
-                f"--geometry={TAMANO_VENTANA}",
-                "--ontop",
-                filepath
-            ]
+            cmd = [REPRODUCTOR, "--cache=yes", "--cache-secs=30", f"--geometry={TAMANO_VENTANA}", "--ontop", filepath]
             subprocess.run(cmd)
             return True
         except KeyboardInterrupt:
@@ -173,33 +142,21 @@ class XONITUBE:
             return False
     
     def reproducir_stream(self, url, calidad, nombre_calidad):
-        """Reproducción directa sin descargar"""
+        """Reproducción directa usando mpv con yt-dlp integrado (sin pipe, sin sudo)"""
         print(f"\n{Colors.GREEN}▶ Reproduciendo en {nombre_calidad}...{Colors.END}")
         self.mostrar_controles()
-        
         try:
-            cmd_yt = [
-                "yt-dlp",
-                "-f", calidad,
-                "-o", "-",
-                "--quiet",
-                url
-            ]
-            
-            cmd_mpv = [
+            cmd = [
                 REPRODUCTOR,
+                f"--ytdl-format={calidad}",
                 "--cache=yes",
                 "--cache-secs=30",
                 f"--geometry={TAMANO_VENTANA}",
                 "--ontop",
-                "-"
+                url
             ]
-            
-            p1 = subprocess.Popen(cmd_yt, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-            p2 = subprocess.Popen(cmd_mpv, stdin=p1.stdout)
-            p2.wait()
+            subprocess.run(cmd)
             return True
-            
         except KeyboardInterrupt:
             print(f"\n{Colors.YELLOW}Reproduccion detenida{Colors.END}")
             return True
@@ -208,7 +165,6 @@ class XONITUBE:
             return False
     
     def mostrar_controles(self):
-        """Muestra los controles de mpv"""
         print("  CONTROLES MPV:")
         print("    ← → : Retroceder/Avanzar 5s")
         print("    Space : Pausa")
@@ -217,7 +173,6 @@ class XONITUBE:
         print("-"*40)
     
     def preguntar_cantidad(self):
-        """Pregunta cuantos resultados"""
         while True:
             try:
                 cant = input(f"\n{Colors.CYAN}Cuantos resultados? (1-15, Enter=5): {Colors.END}").strip()
@@ -231,7 +186,6 @@ class XONITUBE:
                 print(f"{Colors.RED}Numero invalido{Colors.END}")
     
     def preguntar_calidad(self):
-        """Selección de calidad"""
         print("\n" + "="*50)
         print("CALIDADES DISPONIBLES".center(50))
         print("="*50)
@@ -245,13 +199,10 @@ class XONITUBE:
         print("  8. Mejor calidad disponible (mas lento)")
         print("  9. Solo audio (sin video)")
         print("-"*50)
-        
         while True:
             op = input(f"{Colors.CYAN}Elige una opcion (1-9, Enter=1): {Colors.END}").strip()
-            
             if op == "":
                 return "worst", "Peor calidad"
-            
             calidades = {
                 '1': ("worst", "Peor calidad"),
                 '2': ("worst[height<=144]", "144p"),
@@ -263,14 +214,11 @@ class XONITUBE:
                 '8': ("best", "Mejor calidad"),
                 '9': ("bestaudio", "Solo audio")
             }
-            
             if op in calidades:
                 return calidades[op]
-            
             print(f"{Colors.RED}Opcion invalida{Colors.END}")
     
     def preguntar_accion(self):
-        """Pregunta que hacer con el video"""
         print("\n" + "="*50)
         print("OPCIONES".center(50))
         print("="*50)
@@ -278,7 +226,6 @@ class XONITUBE:
         print("  2. Guardar y luego reproducir")
         print("  3. Solo guardar (no reproducir)")
         print("-"*50)
-        
         while True:
             op = input(f"{Colors.CYAN}Elige una opcion (1-3, Enter=1): {Colors.END}").strip()
             if op == "":
@@ -288,39 +235,29 @@ class XONITUBE:
             print(f"{Colors.RED}Opcion invalida{Colors.END}")
     
     def run(self):
-        """Bucle principal"""
         while True:
             try:
                 entrada = input(f"\n{Colors.CYAN}Buscar → {Colors.END}").strip()
-                
                 if entrada.lower() in ['salir', 'exit', 'q']:
                     print(f"\n{Colors.GREEN}Gracias por usar XONITUBE{Colors.END}")
                     break
-                
                 if not entrada:
                     continue
-                
                 cantidad = self.preguntar_cantidad()
                 videos = self.buscar_videos(entrada, cantidad)
-                
                 if not videos:
                     print(f"\n{Colors.RED}No se encontraron resultados{Colors.END}")
                     continue
-                
                 self.mostrar_resultados(videos)
-                
                 while True:
                     sel = input(f"\n{Colors.CYAN}Numero de video (Enter para nueva busqueda): {Colors.END}").strip()
-                    
                     if sel == "":
                         break
-                    
                     if sel.isdigit():
                         idx = int(sel) - 1
                         if 0 <= idx < len(videos):
                             formato, nombre_calidad = self.preguntar_calidad()
                             accion = self.preguntar_accion()
-                            
                             if accion == 1:
                                 self.reproducir_stream(videos[idx]['url'], formato, nombre_calidad)
                             elif accion == 2:
@@ -329,7 +266,6 @@ class XONITUBE:
                                     self.reproducir_local(archivo)
                             elif accion == 3:
                                 self.descargar_video(videos[idx]['url'], formato, videos[idx]['nombre'])
-                            
                             otro = input(f"\n{Colors.CYAN}Reproducir otro video de esta busqueda? (s/n): {Colors.END}").strip().lower()
                             if otro not in ['s', 'si', 'y']:
                                 break
@@ -337,7 +273,6 @@ class XONITUBE:
                             print(f"{Colors.RED}Numero debe ser entre 1 y {len(videos)}{Colors.END}")
                     else:
                         print(f"{Colors.RED}Por favor ingresa un numero valido{Colors.END}")
-                        
             except KeyboardInterrupt:
                 print(f"\n\n{Colors.GREEN}Gracias por usar XONITUBE{Colors.END}")
                 break
@@ -354,18 +289,14 @@ def check_ytdlp():
     return shutil.which('yt-dlp') is not None
 
 def main():
-    # Verificar dependencias antes de empezar
     if not check_mpv():
         print(f"{Colors.RED}Error: mpv no esta instalado{Colors.END}")
         print("Ejecuta 'python3 start.py' para instalarlo automaticamente")
         sys.exit(1)
-    
     if not check_ytdlp():
         print(f"{Colors.RED}Error: yt-dlp no esta instalado{Colors.END}")
         print("Ejecuta 'python3 start.py' para instalarlo automaticamente")
         sys.exit(1)
-    
-    # Iniciar la aplicación
     app = XONITUBE()
     app.run()
 
