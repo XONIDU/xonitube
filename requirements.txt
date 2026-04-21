@@ -1,0 +1,2 @@
+# XONITUBE no requiere dependencias Python adicionales
+# Solo necesita mpv y yt-dlp (dependencias del sistema)
