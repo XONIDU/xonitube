@@ -25,17 +25,13 @@ xonitube
 
 ### 🐙 Opción 2: Instalación desde GitHub
 ```bash
-# Clonar el repositorio
 git clone https://github.com/XONIDU/xonitube.git
 cd xonitube
-
-# Ejecutar el lanzador
 python3 start.py
 ```
 
 ### 📥 Opción 3: Instalación manual
 ```bash
-# Descargar el ZIP desde GitHub
 wget https://github.com/XONIDU/xonitube/archive/refs/heads/main.zip
 unzip main.zip
 cd xonitube-main
@@ -50,27 +46,6 @@ python3 start.py
 ✅ Verifica qué dependencias faltan (mpv, yt-dlp, python)  
 ✅ **Las instala automáticamente** con los comandos correctos  
 ✅ Ejecuta el programa principal  
-
-## 🪟 **PARA WINDOWS**
-
-```bash
-# Abre CMD o PowerShell y escribe:
-python start.py
-```
-
-## 🐧 **PARA LINUX**
-
-```bash
-# Abre terminal y escribe:
-python3 start.py
-```
-
-## 🍎 **PARA macOS**
-
-```bash
-# Abre terminal y escribe:
-python3 start.py
-```
 
 ## 🎯 **CÓMO USAR XONITUBE**
 
@@ -103,12 +78,18 @@ CALIDADES DISPONIBLES:
   9. Solo audio (sin video)
 ```
 
-### 5️⃣ Elegir acción
+### 5️⃣ Elegir acción (OPTIMIZADO PARA 1GB RAM)
 ```
-OPCIONES:
-  1. Reproducir ahora (streaming)
-  2. Guardar y luego reproducir
-  3. Solo guardar (no reproducir)
+OPCIONES OPTIMIZADAS:
+  1. Streaming (sin descarga - mas CPU/red)
+  2. Descargar + Reproducir (guarda permanentemente)
+  3. Solo descargar (guarda permanentemente)
+  4. Descargar + Reproducir + BORRAR (OPTIMO para 1GB RAM)
+
+💡 RECOMENDADO: Opcion 4 (descarga, reproduce y borra)
+   - Menos lag que streaming
+   - No ocupa espacio en disco
+   - Ideal para 1GB RAM
 ```
 
 ### 6️⃣ Controlar reproducción
@@ -123,32 +104,37 @@ OPCIONES:
 Los videos que decidas guardar se almacenan automáticamente en:
 
 ```
-Windows: C:\Users\TuUsuario\Videos\XoniTube\
 Linux:   /home/tu_usuario/Videos/XoniTube/
+Windows: C:\Users\TuUsuario\Videos\XoniTube\
 Mac:     /Users/tu_usuario/Videos/XoniTube/
 ```
 
+Los archivos temporales (Opción 4) se guardan en `/tmp/xonitube_temp/` y se borran automáticamente.
+
+## 📊 **COMPARATIVA DE OPCIONES**
+
+| Opción | Comportamiento | RAM | Disco | Lag | Recomendado |
+|--------|---------------|-----|-------|-----|-------------|
+| 1 | Streaming directo | Alta | No | Sí | ❌ |
+| 2 | Descargar + Guardar | Media | Permanente | No | ⚠️ |
+| 3 | Solo descargar | Baja | Permanente | - | ⚠️ |
+| 4 | Descargar + Borrar | **Baja** | **Temporal** | **No** | ✅ |
+
 ## 🔧 **PROBLEMAS COMUNES (Y SOLUCIONES)**
 
-### ❌ **"Error parsing commandline option geometry"**
-El error ya está corregido en la versión v6.4.1. Actualiza:
+### ❌ "Failed to recognize file format"
+El error está corregido en v6.5.0. Actualiza:
 ```bash
-# Desde AUR
 yay -S xonitube --rebuild
-
-# Desde GitHub
-cd xonitube
-git pull
-python3 start.py
 ```
 
-### ❌ **"Python no está instalado"**
+### ❌ "Python no está instalado"
 ```bash
 # Descarga Python desde:
 https://www.python.org/downloads/
 ```
 
-### ❌ **"No se encontró el comando mpv" en Linux**
+### ❌ "No se encontró el comando mpv" en Linux
 ```bash
 # Debian/Ubuntu
 sudo apt install mpv
@@ -157,7 +143,7 @@ sudo apt install mpv
 sudo pacman -S mpv
 ```
 
-### ❌ **"No se encontró el comando yt-dlp" en Linux**
+### ❌ "No se encontró el comando yt-dlp" en Linux
 ```bash
 # Debian/Ubuntu
 sudo apt install yt-dlp
@@ -166,7 +152,7 @@ sudo apt install yt-dlp
 sudo pacman -S yt-dlp
 ```
 
-### ❌ **"Se escucha audio pero no se ve video"**
+### ❌ "Se escucha audio pero no se ve video"
 ```bash
 # Verificar backends disponibles:
 mpv --vo=help
@@ -176,19 +162,18 @@ sudo pacman -S xf86-video-intel  # Intel
 sudo pacman -S xf86-video-nouveau # NVIDIA
 ```
 
-### ❌ **"La ventana se maximiza y da lag"**
-El programa ya fuerza un tamaño fijo de **640x360** para evitar lag. Usa la opción de descarga (opción 2 o 3) para ver el video sin lag.
+### ❌ "La ventana se maximiza y da lag"
+El programa fuerza tamaño fijo 640x360. Usa la **Opción 4** (descarga + borra) para eliminar el lag.
 
 ## ⚡ **OPTIMIZADO PARA 1GB RAM**
 
 | Configuración | Valor | Beneficio |
 |---------------|-------|-----------|
 | Tamaño ventana | 640x360 | No satura el procesador |
+| Método por defecto | Opción 4 | Descarga, reproduce y borra |
+| Archivos temporales | /tmp | Se borran automáticamente |
 | Cache | 30 segundos | Equilibrio RAM/fluidez |
-| Backend video | x11 | Máxima compatibilidad |
 | Sin subtítulos | Sí | Ahorra CPU |
-| Perfil rápido | Sí | Decodificación eficiente |
-| Descarga local | Opcional | Ver sin lag después de descargar |
 
 ## 📞 **¿NECESITAS AYUDA?**
 
@@ -211,10 +196,10 @@ El programa ya fuerza un tamaño fijo de **640x360** para evitar lag. Usa la opc
 - ✅ Funciona en **Windows, Linux y Mac** con Python 3.6+
 - ✅ **Instalación automática** de dependencias vía `start.py`
 - ✅ Optimizado para **1GB RAM** y procesadores antiguos
-- ✅ **Opción de guardar video** antes de reproducir
+- ✅ **Opción 4 por defecto**: descarga, reproduce y borra
 - ✅ **Ventana de tamaño fijo** para evitar lag
 - ✅ Soporta **9 calidades diferentes** (desde peor hasta solo audio)
-- ✅ Los videos guardados se almacenan en **~/Videos/XoniTube/**
+- ✅ Archivos temporales en `/tmp/xonitube_temp/` (se borran solos)
 
 ## 🔄 **ACTUALIZAR XONITUBE**
 
@@ -238,6 +223,7 @@ python3 start.py
 ║   Características:                                       ║
 ║   • Streaming directo o descarga                        ║
 ║   • Optimizado para 1GB RAM                             ║
+║   • Opción 4: descarga, reproduce y borra               ║
 ║   • Instalación automática                              ║
 ║   • Ventana fija sin lag                                ║
 ╚══════════════════════════════════════════════════════════╝
