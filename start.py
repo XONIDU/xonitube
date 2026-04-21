@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-XONITUBE 2026 - Lanzador Universal (Robusto)
+XONITUBE 2026 - Lanzador Universal
 Reproductor de YouTube desde terminal para 1GB RAM
 Incluye instalación automática de pip, yt-dlp y mpv
 Desarrollador: Darian Alberto Camacho Salas
@@ -109,63 +109,44 @@ def get_install_flags():
     return flags
 
 def get_script_dir():
-    """Obtiene el directorio donde está guardado este script (start.py)"""
     return os.path.dirname(os.path.abspath(__file__))
 
-def get_fixed_xonitube_dir():
-    """Devuelve la ruta fija /home/usuario/xonitube/"""
-    usuario = os.path.expanduser("~")
-    nombre_usuario = os.path.basename(usuario)
-    return os.path.join('/home', nombre_usuario, 'xonitube')
-
 def get_xonitube_path():
-    """
-    Detecta la ruta de xonitube.py:
-    1. Primero busca en el mismo directorio que start.py
-    2. Si no, usa la ruta fija /home/usuario/xonitube/
-    """
+    """Detecta la ruta de xonitube.py en múltiples ubicaciones"""
     script_dir = get_script_dir()
-    ruta_local = os.path.join(script_dir, 'xonitube.py')
-    
-    if os.path.exists(ruta_local):
-        return ruta_local, 'local'
-    
-    ruta_fija = os.path.join(get_fixed_xonitube_dir(), 'xonitube.py')
-    if os.path.exists(ruta_fija):
-        return ruta_fija, 'fija'
-    
-    # Si no existe en ningún lado, devolvemos la local como predeterminada
-    return ruta_local, 'ninguna'
-
-def get_xonitube_dir():
-    """Devuelve el directorio donde está xonitube.py"""
-    ruta, _ = get_xonitube_path()
-    return os.path.dirname(ruta)
+    rutas = [
+        os.path.join(script_dir, 'xonitube.py'),
+        '/usr/share/xonitube/xonitube.py',
+        os.path.join(os.path.expanduser("~"), '.xonitube', 'xonitube.py'),
+        os.path.join(os.path.expanduser("~"), 'xonitube', 'xonitube.py'),
+        '/usr/local/share/xonitube/xonitube.py',
+        os.path.join(os.getcwd(), 'xonitube.py')
+    ]
+    for r in rutas:
+        if os.path.exists(r):
+            return r
+    return None
 
 def print_banner():
     sistema = get_system()
     distro = get_linux_distro()
-    ruta_xonitube, origen = get_xonitube_path()
+    ruta = get_xonitube_path()
     sistema_texto = {
         'windows': 'WINDOWS',
         'linux': f'LINUX ({distro.upper()})' if distro else 'LINUX',
         'darwin': 'MACOS'
     }.get(sistema, 'DESCONOCIDO')
     
-    origen_texto = {
-        'local': 'MISMO DIRECTORIO',
-        'fija': '/HOME/USUARIO/XONITUBE',
-        'ninguna': 'NO ENCONTRADO'
-    }.get(origen, 'DESCONOCIDO')
+    estado = "ENCONTRADO" if ruta else "NO ENCONTRADO"
     
     banner = f"""
 {Colors.PURPLE}{Colors.BOLD}╔══════════════════════════════════════════════════════════╗
-║                     XONITUBE 2026 v6.3                      ║
+║                     XONITUBE 2026 v6.4                      ║
 ║              Reproductor de YouTube desde Terminal           ║
 ║                   Optimizado para 1GB RAM                    ║
 ║                                                            ║
 ║               Sistema detectado: {sistema_texto:<27} ║
-║               Origen xonitube.py: {origen_texto:<27} ║
+║               xonitube.py: {estado:<27} ║
 ║                                                            ║
 ║               Desarrollado por: Darian Alberto             ║
 ║                      Camacho Salas                         ║
@@ -174,8 +155,37 @@ def print_banner():
     """
     print(banner)
 
+def mostrar_ayuda():
+    ayuda = f"""
+{Colors.BOLD}USO DE XONITUBE:{Colors.END}
+
+  xonitube
+
+{Colors.BOLD}CARACTERISTICAS:{Colors.END}
+
+  ✅ Busca videos desde terminal
+  ✅ Reproduce con mpv (backends automaticos)
+  ✅ Guarda videos localmente
+  ✅ Optimizado para 1GB RAM
+  ✅ Sin navegador, sin lag
+
+{Colors.BOLD}COMANDOS DURANTE REPRODUCCION:{Colors.END}
+
+  ← →      - Retroceder/Avanzar 5s
+  Space    - Pausa/Reanudar
+  ↑ ↓      - Volumen
+  q        - Salir de reproduccion
+  Ctrl+C   - Volver al menu
+
+{Colors.BOLD}DESCARGAS:{Colors.END}
+
+  Los videos guardados se almacenan en:
+  ~/Videos/XoniTube/
+    """
+    print(ayuda)
+
 # ============================================================================
-# Verificación e instalación de pip
+# Verificación de dependencias del sistema
 # ============================================================================
 def check_python():
     try:
@@ -209,24 +219,6 @@ def install_pip_linux():
             return True
         except:
             return False
-    elif distro == 'fedora':
-        try:
-            subprocess.run(['sudo', 'dnf', 'install', '-y', 'python3-pip'], check=True)
-            return True
-        except:
-            return False
-    elif distro == 'centos':
-        try:
-            subprocess.run(['sudo', 'yum', 'install', '-y', 'python3-pip'], check=True)
-            return True
-        except:
-            return False
-    elif distro == 'opensuse':
-        try:
-            subprocess.run(['sudo', 'zypper', 'install', '-y', 'python3-pip'], check=True)
-            return True
-        except:
-            return False
     return False
 
 def install_pip_windows():
@@ -235,18 +227,8 @@ def install_pip_windows():
         subprocess.run([sys.executable, '-m', 'ensurepip', '--upgrade'], check=True)
         return True
     except:
-        try:
-            import urllib.request
-            urllib.request.urlretrieve('https://bootstrap.pypa.io/get-pip.py', 'get-pip.py')
-            subprocess.run([sys.executable, 'get-pip.py'], check=True)
-            os.remove('get-pip.py')
-            return True
-        except:
-            return False
+        return False
 
-# ============================================================================
-# Instalación de dependencias del sistema (mpv, yt-dlp)
-# ============================================================================
 def check_mpv():
     return shutil.which('mpv') is not None
 
@@ -262,12 +244,6 @@ def install_mpv_linux():
             subprocess.run(['sudo', 'apt', 'install', '-y', 'mpv'], check=True)
         elif distro == 'arch-based':
             subprocess.run(['sudo', 'pacman', '-S', '--noconfirm', 'mpv'], check=True)
-        elif distro == 'fedora':
-            subprocess.run(['sudo', 'dnf', 'install', '-y', 'mpv'], check=True)
-        elif distro == 'centos':
-            subprocess.run(['sudo', 'yum', 'install', '-y', 'mpv'], check=True)
-        elif distro == 'opensuse':
-            subprocess.run(['sudo', 'zypper', 'install', '-y', 'mpv'], check=True)
         else:
             return False
         return True
@@ -293,28 +269,20 @@ def install_mpv_windows():
     return False
 
 def install_ytdlp():
-    """
-    Instala o actualiza yt-dlp usando el gestor nativo si es posible (pacman, apt, etc.),
-    y si no, mediante pip con los flags adecuados.
-    En Arch-based se fuerza el uso de pacman.
-    """
+    """Instala o actualiza yt-dlp usando gestor nativo o pip"""
     sistema = get_system()
     distro = get_linux_distro()
     
     if sistema == 'linux' and distro == 'arch-based':
-        # En Arch, instalar con pacman (mejor que pip)
         print(f"{Colors.YELLOW}Instalando yt-dlp desde pacman (Arch)...{Colors.END}")
         try:
             subprocess.run(['sudo', 'pacman', '-S', '--noconfirm', 'yt-dlp'], check=True)
             print(f"{Colors.GREEN}yt-dlp instalado correctamente desde pacman.{Colors.END}")
             return True
-        except Exception as e:
-            print(f"{Colors.RED}Fallo instalación con pacman: {e}{Colors.END}")
-            print(f"{Colors.YELLOW}Intentando con pip...{Colors.END}")
+        except:
+            pass
     
-    # Para otros Linux (Debian, Fedora, etc.) usar pip o gestor si existe
     if sistema == 'linux' and distro == 'debian-based':
-        # Primero intentar con apt
         try:
             subprocess.run(['sudo', 'apt', 'install', '-y', 'yt-dlp'], check=True)
             print(f"{Colors.GREEN}yt-dlp instalado desde apt.{Colors.END}")
@@ -322,10 +290,8 @@ def install_ytdlp():
         except:
             pass
     
-    # Si no se instaló con gestor nativo, usar pip
     print(f"{Colors.YELLOW}Instalando/actualizando yt-dlp con pip...{Colors.END}")
     if not check_pip():
-        print(f"{Colors.RED}No se encontró pip. Instálalo primero.{Colors.END}")
         return False
     
     flags = get_install_flags()
@@ -335,7 +301,6 @@ def install_ytdlp():
         print(f"{Colors.GREEN}yt-dlp instalado/actualizado con pip.{Colors.END}")
         return True
     except:
-        # Intentar sin flags
         try:
             cmd = get_pip_command() + ['install', '--upgrade', 'yt-dlp']
             subprocess.run(cmd, check=True)
@@ -346,18 +311,9 @@ def install_ytdlp():
             return False
 
 # ============================================================================
-# Verificación de xonitube.py y ejecución
+# Función principal
 # ============================================================================
-def check_xonitube():
-    ruta, origen = get_xonitube_path()
-    existe = os.path.exists(ruta)
-    if not existe:
-        print(f"{Colors.RED}❌ No se encuentra xonitube.py{Colors.END}")
-        print(f"   Buscado en: {ruta}")
-    return existe
-
 def main():
-    # Limpiar pantalla
     if get_system() == 'windows':
         os.system('cls')
     else:
@@ -365,79 +321,40 @@ def main():
     
     print_banner()
     
-    sistema = get_system()
-    distro = get_linux_distro()
-    script_dir = get_script_dir()
-    ruta_xonitube, origen = get_xonitube_path()
-    xonitube_dir = get_xonitube_dir()
+    if len(sys.argv) > 1 and sys.argv[1] in ['-h', '--help', '/?']:
+        mostrar_ayuda()
+        if get_system() != 'windows':
+            input(f"\n{Colors.YELLOW}Presiona Enter para salir...{Colors.END}")
+        return
     
-    print(f"{Colors.BOLD}Sistema operativo:{Colors.END} {sistema}")
-    if distro:
-        print(f"{Colors.BOLD}Distribución:{Colors.END} {distro}")
-    print(f"{Colors.BOLD}Directorio de start.py:{Colors.END} {script_dir}")
-    print(f"{Colors.BOLD}Origen de xonitube.py:{Colors.END} {origen}")
-    print(f"{Colors.BOLD}Ruta de xonitube.py:{Colors.END} {ruta_xonitube}")
-    
-    # Verificar que el directorio de xonitube existe, si no, crearlo (solo para ruta fija)
-    if origen == 'ninguna' and not os.path.exists(xonitube_dir):
-        print(f"\n{Colors.YELLOW}⚠️ El directorio {xonitube_dir} no existe. Creándolo...{Colors.END}")
-        os.makedirs(xonitube_dir, exist_ok=True)
-        print(f"{Colors.GREEN}✓ Directorio creado: {xonitube_dir}{Colors.END}")
-    
-    # Verificar Python
     if not check_python():
-        print(f"\n{Colors.RED}❌ Python no está instalado o no está en el PATH.{Colors.END}")
+        print(f"\n{Colors.RED}❌ Python no esta instalado{Colors.END}")
         sys.exit(1)
     
-    # Mostrar versión de Python
     ver_py = subprocess.run(get_python_command() + ['--version'], capture_output=True, text=True).stdout.strip()
     print(f"{Colors.BOLD}Python:{Colors.END} {ver_py}")
     
-    # Verificar pip e instalarlo si falta
     if not check_pip():
         print(f"\n{Colors.YELLOW}⚠️ Pip no encontrado. Instalando...{Colors.END}")
+        sistema = get_system()
         if sistema == 'linux':
             if not install_pip_linux():
-                print(f"{Colors.RED}No se pudo instalar pip. Instálalo manualmente.{Colors.END}")
+                print(f"{Colors.RED}No se pudo instalar pip.{Colors.END}")
                 sys.exit(1)
         elif sistema == 'windows':
             if not install_pip_windows():
-                print(f"{Colors.RED}No se pudo instalar pip. Ejecuta como administrador.{Colors.END}")
+                print(f"{Colors.RED}No se pudo instalar pip.{Colors.END}")
                 sys.exit(1)
-        else:
-            print(f"{Colors.YELLOW}Instala pip manualmente con: python -m ensurepip --upgrade{Colors.END}")
-            sys.exit(1)
     else:
         print(f"{Colors.GREEN}✓ Pip disponible{Colors.END}")
-    
-    # Verificar e instalar/actualizar yt-dlp (robusto)
-    if not check_ytdlp():
-        print(f"\n{Colors.YELLOW}⚠️ yt-dlp no encontrado. Instalando...{Colors.END}")
-        if not install_ytdlp():
-            print(f"{Colors.RED}Fallo crítico: no se pudo instalar yt-dlp. Abortando.{Colors.END}")
-            sys.exit(1)
-    else:
-        # Incluso si existe, intentamos actualizar
-        print(f"\n{Colors.CYAN}yt-dlp encontrado. Actualizando a la última versión...{Colors.END}")
-        install_ytdlp()
-    
-    # Verificar nuevamente que el comando esté disponible
-    if not check_ytdlp():
-        print(f"{Colors.RED}Error: yt-dlp no está disponible después de la instalación. Intenta reiniciar.{Colors.END}")
-        sys.exit(1)
-    else:
-        try:
-            ver_yt = subprocess.run(['yt-dlp', '--version'], capture_output=True, text=True).stdout.strip()
-            print(f"{Colors.GREEN}✓ yt-dlp {ver_yt} disponible{Colors.END}")
-        except:
-            print(f"{Colors.GREEN}✓ yt-dlp disponible{Colors.END}")
     
     # Verificar mpv
     if not check_mpv():
         print(f"\n{Colors.YELLOW}⚠️ mpv no encontrado. Intentando instalar...{Colors.END}")
+        sistema = get_system()
         if sistema == 'linux':
             if not install_mpv_linux():
-                print(f"{Colors.RED}No se pudo instalar mpv. Instálalo manualmente con el gestor de paquetes.{Colors.END}")
+                print(f"{Colors.RED}No se pudo instalar mpv. Instálalo manualmente.{Colors.END}")
                 sys.exit(1)
         elif sistema == 'darwin':
             if not install_mpv_macos():
@@ -445,38 +362,50 @@ def main():
                 sys.exit(1)
         elif sistema == 'windows':
             install_mpv_windows()
-            print(f"{Colors.YELLOW}Después de instalar mpv, ejecuta este script nuevamente.{Colors.END}")
             sys.exit(1)
     else:
         print(f"{Colors.GREEN}✓ mpv disponible{Colors.END}")
     
-    # Verificar que existe xonitube.py
-    if not check_xonitube():
-        print(f"\n{Colors.RED}❌ Error crítico: No se encuentra xonitube.py{Colors.END}")
-        if origen == 'ninguna':
-            print(f"   Puedes copiar xonitube.py a:")
-            print(f"     - {script_dir} (donde está start.py)")
-            print(f"     - O a {get_fixed_xonitube_dir()}")
+    # Verificar/instalar yt-dlp
+    if not check_ytdlp():
+        print(f"\n{Colors.YELLOW}⚠️ yt-dlp no encontrado. Instalando...{Colors.END}")
+        if not install_ytdlp():
+            print(f"{Colors.RED}No se pudo instalar yt-dlp.{Colors.END}")
+            sys.exit(1)
+    else:
+        print(f"{Colors.GREEN}✓ yt-dlp disponible{Colors.END}")
+    
+    # Buscar xonitube.py
+    ruta_xonitube = get_xonitube_path()
+    if not ruta_xonitube:
+        print(f"\n{Colors.RED}❌ No se encuentra xonitube.py{Colors.END}")
+        print("   Buscado en:")
+        print("     - Mismo directorio que start.py")
+        print("     - /usr/share/xonitube/xonitube.py")
+        print("     - ~/.xonitube/xonitube.py")
+        print("     - ~/xonitube/xonitube.py")
+        print("     - /usr/local/share/xonitube/xonitube.py")
         sys.exit(1)
     
-    # Cambiar al directorio de xonitube.py
-    os.chdir(xonitube_dir)
-    print(f"{Colors.GREEN}✓ Cambiando al directorio: {xonitube_dir}{Colors.END}")
+    xonitube_dir = os.path.dirname(ruta_xonitube)
+    print(f"{Colors.GREEN}✓ xonitube.py encontrado en: {xonitube_dir}{Colors.END}")
     
-    # Ejecutar xonitube.py
+    # Cambiar al directorio y ejecutar
+    os.chdir(xonitube_dir)
     print(f"\n{Colors.BOLD}🚀 Iniciando XONITUBE...{Colors.END}")
     print(f"{Colors.CYAN}Presiona Ctrl+C para salir.{Colors.END}")
     print("-"*50)
+    
     try:
         python_cmd = get_python_command()
-        subprocess.run(python_cmd + ['xonitube.py'])
+        subprocess.run(python_cmd + [ruta_xonitube])
     except KeyboardInterrupt:
         print(f"\n{Colors.YELLOW}🛑 Programa detenido por el usuario.{Colors.END}")
     except Exception as e:
         print(f"\n{Colors.RED}❌ Error ejecutando xonitube.py: {e}{Colors.END}")
     
     print(f"\n{Colors.GREEN}Gracias por usar XONITUBE 2026{Colors.END}")
-    if sistema != 'windows':
+    if get_system() != 'windows':
         input(f"{Colors.YELLOW}Presiona Enter para salir...{Colors.END}")
 
 if __name__ == '__main__':
