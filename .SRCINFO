@@ -1,6 +1,6 @@
 pkgbase = xonitube
 	pkgdesc = Reproductor de YouTube desde terminal para equipos de bajos recursos (1GB RAM). Streaming directo o descarga.
-	pkgver = 6.3.0
+	pkgver = 6.4.1
 	pkgrel = 1
 	url = https://github.com/XONIDU/xonitube
 	arch = any
@@ -8,7 +8,7 @@ pkgbase = xonitube
 	depends = python
 	depends = mpv
 	depends = yt-dlp
-	source = xonitube-6.3.0.tar.gz::https://github.com/XONIDU/xonitube/archive/refs/tags/v6.3.0.tar.gz
-	sha256sums = 808334a34e251b60a4ed76a5f4dbd2fee22af385bbb476673478daebaafdf214
+	source = xonitube-6.4.1.tar.gz::https://github.com/XONIDU/xonitube/archive/refs/tags/v6.4.1.tar.gz
+	sha256sums = 7882d69558ee2adedbce36f09900582c80e1d656f5ab8b3948aa0c40c39072b1
 
 pkgname = xonitube
