@@ -3,7 +3,17 @@
 Reproductor de YouTube desde terminal para PC de gama baja (1GB RAM)
 
 ## ⚠️ ADVERTENCIA
+
 Este código tiene **únicamente fines educativos y de uso personal**. No debe utilizarse para infringir los términos de servicio de YouTube.
+
+## ⚖️ ASPECTOS LEGALES
+
+Este software es **educativo**. Los videos descargados deben ser:
+- Para uso **personal y privado** únicamente
+- No deben ser **redistribuidos o vendidos**
+- Respeta los **derechos de autor** de los creadores
+
+El autor no se responsabiliza del mal uso que se le dé a esta herramienta.
 
 ## 📁 Estructura del Proyecto
 
@@ -186,7 +196,7 @@ El programa fuerza tamaño fijo 640x360. Usa la **Opción 4** (descarga + borra)
 
 | ✅ SÍ | ❌ NO |
 |-------|-------|
-| Ver videos de YouTube | Descargar contenido con copyright |
+| Ver videos de YouTube | Descargar contenido con copyright para redistribuir |
 | Guardar videos para ver offline | Usarlo comercialmente |
 | Aprender automatización | Quitar los créditos |
 | Probar en tu Eee PC | Infringir términos de servicio |
