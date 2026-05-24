@@ -31,6 +31,27 @@ cd xonitube
 python3 start.py
 ```
 
+### Opción 2 – Comando `xoninstall` (recomendado para futuras herramientas XONI)
+
+Agrega la siguiente función a tu `~/.bashrc` con un solo comando:
+
+```bash
+echo 'xoninstall() { if [ -z "$1" ]; then echo "Uso: xoninstall <repo>"; echo "Ej: xoninstall xoniran"; else git clone "https://github>
+```
+
+Luego simplemente escribe:
+
+```bash
+xoninstall xonidate
+cd xonidate
+pip install -r requirements.txt   # o pip install flask fpdf qrcode pillow
+python start.py
+```
+
+> **Nota:** Esta función te servirá para instalar cualquier otra herramienta futura de XONIDU (por ejemplo `xoninstall xonicli`).
+
+
+
 ## 🎯 **CÓMO USAR XONITUBE**
 
 ### 1️⃣ Buscar videos
