@@ -12,7 +12,7 @@ Este código tiene **únicamente fines educativos y de uso personal**. Los video
 xonitube/
 ├── start.py                 # 🟢 LANZADOR UNIVERSAL
 ├── xonitube.py              # 🔵 PROGRAMA PRINCIPAL
-├── requirements.txt         # Dependencias
+├── requisitos.txt         # Dependencias
 └── README.md                # Este archivo
 ```
 
@@ -42,9 +42,9 @@ echo 'xoninstall() { if [ -z "$1" ]; then echo "Uso: xoninstall <repo>"; echo "E
 Luego simplemente escribe:
 
 ```bash
-xoninstall xonidate
-cd xonidate
-pip install -r requirements.txt   # o pip install flask fpdf qrcode pillow
+xoninstall xonitube
+cd xonitube
+pip install -r requisitos.txt
 python start.py
 ```
 
