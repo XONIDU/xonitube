@@ -4,7 +4,7 @@
 """
 XONITUBE 2026 - Lanzador Universal
 Reproductor de YouTube desde terminal para 1GB RAM
-Incluye instalación automática de pip, yt-dlp y mpv
+Incluye múltiples estrategias de instalación para todas las distribuciones
 Desarrollador: Darian Alberto Camacho Salas
 Organización: XONIDU
 """
@@ -14,8 +14,9 @@ import sys
 import os
 import platform
 import shutil
+import importlib.util
 import time
-from pathlib import Path
+import tempfile
 
 # ============================================================================
 # Colores para terminal
@@ -86,13 +87,30 @@ def get_python_command():
     if get_system() == 'windows':
         return ['python']
     else:
-        try:
-            subprocess.run(['python3', '--version'], capture_output=True, check=True)
-            return ['python3']
-        except:
-            return ['python']
+        for cmd in ['python3', 'python']:
+            try:
+                subprocess.run([cmd, '--version'], capture_output=True, check=True)
+                return [cmd]
+            except:
+                continue
+        return ['python3']
 
 def get_pip_command():
+    # Probar diferentes formas de ejecutar pip
+    pip_commands = [
+        [sys.executable, '-m', 'pip'],
+        ['pip3'],
+        ['pip'],
+        [sys.executable, '-m', 'pip3'],
+        ['python3', '-m', 'pip'],
+        ['python', '-m', 'pip']
+    ]
+    for cmd in pip_commands:
+        try:
+            subprocess.run(cmd + ['--version'], capture_output=True, check=True)
+            return cmd
+        except:
+            continue
     return [sys.executable, '-m', 'pip']
 
 def get_install_flags():
@@ -130,27 +148,23 @@ def get_xonitube_path():
 def print_banner():
     sistema = get_system()
     distro = get_linux_distro()
-    ruta = get_xonitube_path()
     sistema_texto = {
         'windows': 'WINDOWS',
         'linux': f'LINUX ({distro.upper()})' if distro else 'LINUX',
         'darwin': 'MACOS'
     }.get(sistema, 'DESCONOCIDO')
     
-    estado = "ENCONTRADO" if ruta else "NO ENCONTRADO"
-    
     banner = f"""
 {Colors.PURPLE}{Colors.BOLD}╔══════════════════════════════════════════════════════════╗
-║                     XONITUBE 2026 v6.4                      ║
-║              Reproductor de YouTube desde Terminal           ║
-║                   Optimizado para 1GB RAM                    ║
+║                    XONITUBE 2026 v6.6                     ║
+║              Reproductor de YouTube desde Terminal        ║
+║                   Optimizado para 1GB RAM                 ║
 ║                                                            ║
 ║               Sistema detectado: {sistema_texto:<27} ║
-║               xonitube.py: {estado:<27} ║
 ║                                                            ║
-║               Desarrollado por: Darian Alberto             ║
-║                      Camacho Salas                         ║
-║                      Organización: XONIDU                  ║
+║               Desarrollado por: Darian Alberto            ║
+║                      Camacho Salas                        ║
+║                      Organización: XONIDU                 ║
 ╚══════════════════════════════════════════════════════════════╝{Colors.END}
     """
     print(banner)
@@ -206,23 +220,65 @@ def check_pip():
 def install_pip_linux():
     distro = get_linux_distro()
     print(f"{Colors.YELLOW}Instalando pip en Linux ({distro})...{Colors.END}")
+    
+    estrategias = []
     if distro == 'debian-based':
-        try:
-            subprocess.run(['sudo', 'apt', 'update'], check=False)
-            subprocess.run(['sudo', 'apt', 'install', '-y', 'python3-pip'], check=True)
-            return True
-        except:
-            return False
+        estrategias = [
+            ['sudo', 'apt', 'update'],
+            ['sudo', 'apt', 'install', '-y', 'python3-pip']
+        ]
     elif distro == 'arch-based':
-        try:
-            subprocess.run(['sudo', 'pacman', '-S', '--noconfirm', 'python-pip'], check=True)
-            return True
-        except:
-            return False
-    return False
+        estrategias = [
+            ['sudo', 'pacman', '-S', '--noconfirm', 'python-pip']
+        ]
+    elif distro == 'fedora':
+        estrategias = [
+            ['sudo', 'dnf', 'install', '-y', 'python3-pip']
+        ]
+    elif distro == 'centos':
+        estrategias = [
+            ['sudo', 'yum', 'install', '-y', 'python3-pip']
+        ]
+    elif distro == 'opensuse':
+        estrategias = [
+            ['sudo', 'zypper', 'install', '-y', 'python3-pip']
+        ]
+    else:
+        estrategias = [
+            ['sudo', 'apt', 'update'],
+            ['sudo', 'apt', 'install', '-y', 'python3-pip']
+        ]
+    
+    try:
+        for cmd in estrategias:
+            subprocess.run(cmd, check=False)
+        return True
+    except:
+        return False
 
 def install_pip_windows():
     print(f"{Colors.YELLOW}Instalando pip en Windows...{Colors.END}")
+    try:
+        subprocess.run([sys.executable, '-m', 'ensurepip', '--upgrade'], check=True)
+        return True
+    except:
+        try:
+            import urllib.request
+            urllib.request.urlretrieve('https://bootstrap.pypa.io/get-pip.py', 'get-pip.py')
+            subprocess.run([sys.executable, 'get-pip.py'], check=True)
+            os.remove('get-pip.py')
+            return True
+        except:
+            return False
+
+def install_pip_macos():
+    print(f"{Colors.YELLOW}Instalando pip en macOS...{Colors.END}")
+    if shutil.which('brew'):
+        try:
+            subprocess.run(['brew', 'install', 'python3'], check=True)
+            return True
+        except:
+            pass
     try:
         subprocess.run([sys.executable, '-m', 'ensurepip', '--upgrade'], check=True)
         return True
@@ -244,6 +300,12 @@ def install_mpv_linux():
             subprocess.run(['sudo', 'apt', 'install', '-y', 'mpv'], check=True)
         elif distro == 'arch-based':
             subprocess.run(['sudo', 'pacman', '-S', '--noconfirm', 'mpv'], check=True)
+        elif distro == 'fedora':
+            subprocess.run(['sudo', 'dnf', 'install', '-y', 'mpv'], check=True)
+        elif distro == 'centos':
+            subprocess.run(['sudo', 'yum', 'install', '-y', 'mpv'], check=True)
+        elif distro == 'opensuse':
+            subprocess.run(['sudo', 'zypper', 'install', '-y', 'mpv'], check=True)
         else:
             return False
         return True
@@ -251,14 +313,14 @@ def install_mpv_linux():
         return False
 
 def install_mpv_macos():
-    if not shutil.which('brew'):
-        print(f"{Colors.RED}Homebrew no instalado. Instala mpv manualmente: brew install mpv{Colors.END}")
-        return False
-    try:
-        subprocess.run(['brew', 'install', 'mpv'], check=True)
-        return True
-    except:
-        return False
+    if shutil.which('brew'):
+        try:
+            subprocess.run(['brew', 'install', 'mpv'], check=True)
+            return True
+        except:
+            return False
+    print(f"{Colors.YELLOW}Homebrew no instalado. Instala mpv manualmente: brew install mpv{Colors.END}")
+    return False
 
 def install_mpv_windows():
     print(f"{Colors.YELLOW}mpv no encontrado. Instrucciones para Windows:{Colors.END}")
@@ -269,46 +331,59 @@ def install_mpv_windows():
     return False
 
 def install_ytdlp():
-    """Instala o actualiza yt-dlp usando gestor nativo o pip"""
+    """Instala o actualiza yt-dlp usando múltiples estrategias"""
     sistema = get_system()
     distro = get_linux_distro()
     
-    if sistema == 'linux' and distro == 'arch-based':
-        print(f"{Colors.YELLOW}Instalando yt-dlp desde pacman (Arch)...{Colors.END}")
-        try:
-            subprocess.run(['sudo', 'pacman', '-S', '--noconfirm', 'yt-dlp'], check=True)
-            print(f"{Colors.GREEN}yt-dlp instalado correctamente desde pacman.{Colors.END}")
-            return True
-        except:
-            pass
+    # Estrategias por sistema
+    estrategias = []
     
-    if sistema == 'linux' and distro == 'debian-based':
-        try:
-            subprocess.run(['sudo', 'apt', 'install', '-y', 'yt-dlp'], check=True)
-            print(f"{Colors.GREEN}yt-dlp instalado desde apt.{Colors.END}")
-            return True
-        except:
-            pass
+    if sistema == 'linux':
+        if distro == 'arch-based':
+            estrategias.append(['sudo', 'pacman', '-S', '--noconfirm', 'yt-dlp'])
+        elif distro == 'debian-based':
+            estrategias.append(['sudo', 'apt', 'install', '-y', 'yt-dlp'])
+        elif distro == 'fedora':
+            estrategias.append(['sudo', 'dnf', 'install', '-y', 'yt-dlp'])
+        elif distro == 'centos':
+            estrategias.append(['sudo', 'yum', 'install', '-y', 'yt-dlp'])
+        elif distro == 'opensuse':
+            estrategias.append(['sudo', 'zypper', 'install', '-y', 'yt-dlp'])
     
-    print(f"{Colors.YELLOW}Instalando/actualizando yt-dlp con pip...{Colors.END}")
-    if not check_pip():
-        return False
+    # Estrategias con pip
+    if check_pip() or check_python():
+        pip_cmd = get_pip_command()
+        flags_options = [
+            [],
+            ['--user'],
+            ['--break-system-packages'],
+            ['--user', '--break-system-packages']
+        ]
+        for flags in flags_options:
+            estrategias.append(pip_cmd + ['install', '--upgrade', 'yt-dlp'] + flags)
     
-    flags = get_install_flags()
-    try:
-        cmd = get_pip_command() + ['install', '--upgrade', 'yt-dlp'] + flags
-        subprocess.run(cmd, check=True, capture_output=True)
-        print(f"{Colors.GREEN}yt-dlp instalado/actualizado con pip.{Colors.END}")
-        return True
-    except:
+    # Estrategia: instalación directa desde GitHub
+    if sistema == 'linux':
+        estrategias.append([
+            'sudo', 'curl', '-L', 
+            'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp',
+            '-o', '/usr/local/bin/yt-dlp'
+        ])
+        estrategias.append(['sudo', 'chmod', 'a+rx', '/usr/local/bin/yt-dlp'])
+    
+    for idx, cmd in enumerate(estrategias, 1):
+        print(f"  Intento {idx}: {' '.join(cmd)}")
         try:
-            cmd = get_pip_command() + ['install', '--upgrade', 'yt-dlp']
-            subprocess.run(cmd, check=True)
-            print(f"{Colors.GREEN}yt-dlp instalado/actualizado sin flags.{Colors.END}")
-            return True
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+            if result.returncode == 0:
+                print(f"{Colors.GREEN}✓ yt-dlp instalado correctamente{Colors.END}")
+                return True
+        except subprocess.TimeoutExpired:
+            print(f"  Timeout")
         except Exception as e:
-            print(f"{Colors.RED}Error instalando yt-dlp: {e}{Colors.END}")
-            return False
+            print(f"  Error: {str(e)[:50]}")
+    
+    return False
 
 # ============================================================================
 # Función principal
@@ -340,10 +415,15 @@ def main():
         if sistema == 'linux':
             if not install_pip_linux():
                 print(f"{Colors.RED}No se pudo instalar pip.{Colors.END}")
+                print("   Instala python3-pip manualmente con tu gestor de paquetes")
+                sys.exit(1)
+        elif sistema == 'darwin':
+            if not install_pip_macos():
+                print(f"{Colors.RED}No se pudo instalar pip.{Colors.END}")
                 sys.exit(1)
         elif sistema == 'windows':
             if not install_pip_windows():
-                print(f"{Colors.RED}No se pudo instalar pip.{Colors.END}")
+                print(f"{Colors.RED}No se pudo instalar pip. Ejecuta como administrador.{Colors.END}")
                 sys.exit(1)
     else:
         print(f"{Colors.GREEN}✓ Pip disponible{Colors.END}")
@@ -371,9 +451,13 @@ def main():
         print(f"\n{Colors.YELLOW}⚠️ yt-dlp no encontrado. Instalando...{Colors.END}")
         if not install_ytdlp():
             print(f"{Colors.RED}No se pudo instalar yt-dlp.{Colors.END}")
+            print("   Instálalo manualmente: pip install yt-dlp")
             sys.exit(1)
     else:
         print(f"{Colors.GREEN}✓ yt-dlp disponible{Colors.END}")
+        # Opcional: actualizar
+        print(f"{Colors.CYAN}Intentando actualizar yt-dlp...{Colors.END}")
+        install_ytdlp()
     
     # Buscar xonitube.py
     ruta_xonitube = get_xonitube_path()
@@ -384,7 +468,6 @@ def main():
         print("     - /usr/share/xonitube/xonitube.py")
         print("     - ~/.xonitube/xonitube.py")
         print("     - ~/xonitube/xonitube.py")
-        print("     - /usr/local/share/xonitube/xonitube.py")
         sys.exit(1)
     
     xonitube_dir = os.path.dirname(ruta_xonitube)
