@@ -18,51 +18,105 @@ xonitube/
 
 ## 🚀 **MÉTODOS DE INSTALACIÓN**
 
-### 📦 Opción 1: Instalación desde AUR (Arch Linux / EndeavourOS / Manjaro)
+### 🐧 Linux (cualquier distribución)
 
+#### 📦 Opción 1: Desde AUR (Arch Linux / EndeavourOS / Manjaro)
 ```bash
 yay -S xonitube
 xonitube
 ```
 
-### 🐙 Opción 2: Usando el instalador (Recomendado para otras distribuciones)
-
+#### 🐙 Opción 2: Usando el instalador universal (Recomendado)
 ```bash
 git clone https://github.com/XONIDU/xonitube.git
 cd xonitube
 python3 start.py
 ```
 
-El instalador hará todo automáticamente:
+El instalador detecta automáticamente tu distribución e instala `mpv` y `yt-dlp` con el gestor de paquetes correcto (apt, pacman, dnf, zypper, etc.).
 
-✅ Detectar tu sistema operativo y distribución  
-✅ Instalar pip si no está disponible  
-✅ Instalar mpv y yt-dlp (con múltiples estrategias de fallback)  
-✅ Ejecutar XONITUBE directamente  
+#### 📥 Opción 3: Instalación manual
+```bash
+# Instalar dependencias
+# Debian/Ubuntu/Mint
+sudo apt install mpv yt-dlp
 
-### 📥 Opción 3: Instalación manual
+# Arch/Manjaro
+sudo pacman -S mpv yt-dlp
 
+# Fedora
+sudo dnf install mpv yt-dlp
+
+# openSUSE
+sudo zypper install mpv yt-dlp
+
+# Clonar y ejecutar
+git clone https://github.com/XONIDU/xonitube.git
+cd xonitube
+python3 xonitube.py
+```
+
+---
+
+### 🪟 Windows
+
+#### ⚡ Instalación automática (recomendada)
+```cmd
+# Abre PowerShell o CMD como administrador
+git clone https://github.com/XONIDU/xonitube.git
+cd xonitube
+python start.py
+```
+
+El instalador verificará e instalará automáticamente `yt-dlp` (mediante pip) y te guiará para instalar `mpv` manualmente si es necesario.
+
+#### 📥 Instalación manual paso a paso
+
+1. **Instalar Python 3.6+**  
+   Descarga desde [python.org](https://www.python.org/downloads/) y marca "Add Python to PATH"
+
+2. **Instalar mpv**  
+   - Descarga el archivo `.7z` desde [mpv.io/installation](https://mpv.io/installation/)  
+   - Extrae a `C:\mpv`  
+   - Agrega `C:\mpv` a las variables de entorno del sistema (PATH)
+
+3. **Instalar yt-dlp**  
+   ```cmd
+   pip install yt-dlp
+   ```
+
+4. **Ejecutar XONITUBE**  
+   ```cmd
+   git clone https://github.com/XONIDU/xonitube.git
+   cd xonitube
+   python xonitube.py
+   ```
+
+---
+
+### 🍎 macOS
+
+#### ⚡ Instalación automática (recomendada)
 ```bash
 git clone https://github.com/XONIDU/xonitube.git
 cd xonitube
+python3 start.py
+```
 
+El instalador usará Homebrew para instalar `mpv` y `yt-dlp` si es posible, o recurrirá a pip.
+
+#### 📥 Instalación manual con Homebrew
+```bash
 # Instalar dependencias
-# Para Ubuntu/Debian/Mint
-sudo apt install mpv yt-dlp
+brew install mpv yt-dlp
 
-# Para Arch Linux/Manjaro
-sudo pacman -S mpv yt-dlp
-
-# Para Fedora
-sudo dnf install mpv yt-dlp
-
-# Para Windows (descargar manualmente):
-# - mpv: https://mpv.io/installation/
-# - yt-dlp: pip install yt-dlp
-
-# Ejecutar XONITUBE
+# Clonar y ejecutar
+git clone https://github.com/XONIDU/xonitube.git
+cd xonitube
 python3 xonitube.py
 ```
+
+---
 
 ## 🎯 **CÓMO USAR XONITUBE**
 
@@ -95,9 +149,9 @@ CALIDADES DISPONIBLES:
   9. Solo audio (sin video)
 ```
 
-### 5️⃣ Elegir acción (OPTIMIZADO PARA 1GB RAM)
+### 5️⃣ Elegir acción **(OPTIMIZADO PARA 1GB RAM)**
 
-Por defecto, se selecciona la **Opción 4** (solo presiona Enter):
+Por defecto se selecciona la **Opción 4** (solo presiona Enter):
 
 ```
 OPCIONES OPTIMIZADAS:
@@ -121,15 +175,10 @@ OPCIONES OPTIMIZADAS:
 
 ## 💾 **DESCARGAS**
 
-Los videos que decidas guardar se almacenan automáticamente en:
-
-```
-Linux:   /home/tu_usuario/Videos/XoniTube/
-Windows: C:\Users\TuUsuario\Videos\XoniTube\
-Mac:     /Users/tu_usuario/Videos/XoniTube/
-```
-
-Los archivos temporales (Opción 4) se guardan en `/tmp/xonitube_temp/` y se borran automáticamente.
+| Tipo | Ruta |
+|------|------|
+| Permanentes | `~/Videos/XoniTube/` (Linux/macOS) o `%USERPROFILE%\Videos\XoniTube\` (Windows) |
+| Temporales (Opción 4) | `/tmp/xonitube_temp/` (Linux/macOS) o `%TEMP%\xonitube_temp\` (Windows) |
 
 ## 📊 **COMPARATIVA DE OPCIONES**
 
@@ -140,34 +189,10 @@ Los archivos temporales (Opción 4) se guardan en `/tmp/xonitube_temp/` y se bor
 | 3 | Solo descargar | Baja | Permanente | - | ⚠️ |
 | 4 | Descargar + Borrar | **Baja** | **Temporal** | **No** | ✅ |
 
-## 🛠️ **PLATAFORMAS SOPORTADAS**
-
-| Sistema | Estado | Notas |
-|---------|--------|-------|
-| Arch Linux | ✅ Perfecto | AUR disponible |
-| Ubuntu/Debian/Mint | ✅ Perfecto | Instalador automático |
-| Fedora | ✅ Perfecto | Usa dnf |
-| openSUSE | ✅ Perfecto | Usa zypper |
-| CentOS/RHEL | ✅ Funciona | Usa yum |
-| Windows | ✅ Funciona | Instalación manual de mpv |
-| macOS | ✅ Funciona | Homebrew recomendado |
-
-## ⚡ **OPTIMIZADO PARA 1GB RAM**
-
-| Configuración | Valor | Beneficio |
-|---------------|-------|-----------|
-| Tamaño ventana | 640x360 | No satura el procesador |
-| Método por defecto | Opción 4 | Descarga, reproduce y borra |
-| Archivos temporales | /tmp | Se borran automáticamente |
-| Cache | 30 segundos | Equilibrio RAM/fluidez |
-| Sin subtítulos | Sí | Ahorra CPU |
-
 ## 🔧 **PROBLEMAS COMUNES (Y SOLUCIONES)**
 
 ### ❌ "Failed to recognize file format"
-
 El error está corregido en v6.5.0+. Actualiza:
-
 ```bash
 # Desde AUR
 yay -S xonitube --rebuild
@@ -177,33 +202,36 @@ cd xonitube && git pull && python3 start.py
 ```
 
 ### ❌ "Python no está instalado"
-
-```bash
-# Descarga Python desde:
-https://www.python.org/downloads/
-```
+Descarga Python desde [python.org](https://www.python.org/downloads/)
 
 ### ❌ "No se encontró el comando mpv"
 
+#### Linux
 ```bash
-# Debian/Ubuntu
+# Debian/Ubuntu/Mint
 sudo apt install mpv
 
-# Arch
+# Arch/Manjaro
 sudo pacman -S mpv
 
 # Fedora
 sudo dnf install mpv
 
-# macOS
-brew install mpv
+# openSUSE
+sudo zypper install mpv
+```
 
-# Windows
-Descargar desde https://mpv.io/installation/
+#### Windows
+Descarga y extrae mpv en `C:\mpv` y agrégalo al PATH.
+
+#### macOS
+```bash
+brew install mpv
 ```
 
 ### ❌ "No se encontró el comando yt-dlp"
 
+#### Linux
 ```bash
 # Debian/Ubuntu
 sudo apt install yt-dlp
@@ -214,27 +242,44 @@ sudo pacman -S yt-dlp
 # Fedora
 sudo dnf install yt-dlp
 
-# O con pip
+# O con pip (cualquier SO)
 pip install yt-dlp
 ```
 
-### ❌ "Se escucha audio pero no se ve video"
+#### Windows
+```cmd
+pip install yt-dlp
+```
 
+#### macOS
+```bash
+brew install yt-dlp
+```
+
+### ❌ "Se escucha audio pero no se ve video"
 ```bash
 # Verificar backends disponibles:
 mpv --vo=help
 
-# Instalar controladores si es necesario:
+# Instalar controladores si es necesario (Linux):
 # Intel
 sudo pacman -S xf86-video-intel
-
 # NVIDIA
 sudo pacman -S xf86-video-nouveau
 ```
 
-### ❌ "La ventana se maximiza y da lag"
-
+### ❌ "Lag al maximizar ventana"
 El programa fuerza tamaño fijo 640x360. Usa la **Opción 4** (descarga + borra) para eliminar el lag.
+
+## ⚡ **OPTIMIZADO PARA 1GB RAM**
+
+| Configuración | Valor | Beneficio |
+|---------------|-------|-----------|
+| Tamaño ventana | 640x360 | No satura el procesador |
+| Método por defecto | Opción 4 | Descarga, reproduce y borra |
+| Archivos temporales | `/tmp` o `%TEMP%` | Se borran automáticamente |
+| Cache | 30 segundos | Equilibrio RAM/fluidez |
+| Sin subtítulos | Sí | Ahorra CPU |
 
 ## 📞 **¿NECESITAS AYUDA?**
 
@@ -260,7 +305,7 @@ El programa fuerza tamaño fijo 640x360. Usa la **Opción 4** (descarga + borra)
 - ✅ **Opción 4 por defecto**: descarga, reproduce y borra
 - ✅ **Ventana de tamaño fijo** para evitar lag
 - ✅ Soporta **9 calidades diferentes** (desde peor hasta solo audio)
-- ✅ Archivos temporales en `/tmp/xonitube_temp/` (se borran solos)
+- ✅ Archivos temporales se eliminan automáticamente
 
 ## 🔄 **ACTUALIZAR XONITUBE**
 
