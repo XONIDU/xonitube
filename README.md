@@ -92,6 +92,24 @@ El instalador verificará e instalará automáticamente `yt-dlp` (mediante pip) 
    python xonitube.py
    ```
 
+
+### Opción 3 – Comando `xoninstall` (recomendado para futuras herramientas XONI)
+
+Agrega la siguiente función a tu `~/.bashrc` con un solo comando:
+
+```bash
+echo 'xoninstall() { if [ -z "$1" ]; then echo "Uso: xoninstall <repo>"; echo "Ej: xoninstall xoniran"; else git clone "https>
+```
+
+Luego simplemente escribe:
+
+```bash
+xoninstall xonitube
+cd xonitube
+pip install -r requisitos.txt
+python start.py
+```
+
 ---
 
 ### 🍎 macOS

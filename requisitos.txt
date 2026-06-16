@@ -5,17 +5,17 @@
 # Metodo anti-bloqueo por defecto
 
 # Arch Linux
-sudo pacman -S python python-pip mpv yt-dlp
+#sudo pacman -S python python-pip mpv yt-dlp
 # No se necesitan paquetes adicionales de pip
 
 # Ubuntu y derivados (Debian, Linux Mint, etc.)
-sudo apt update
-sudo apt install python3 python3-pip mpv yt-dlp -y
+#sudo apt update
+#sudo apt install python3 python3-pip mpv yt-dlp -y
 # No se necesitan paquetes adicionales de pip
 
 # Windows
 # Instalar Python desde: https://www.python.org/downloads/
-pip install yt-dlp
+#pip install yt-dlp
 # Instalar mpv desde: https://mpv.io/installation/
 # Nota: En Windows, el metodo anti-bloqueo puede requerir configuracion adicional
 
@@ -24,4 +24,4 @@ yt-dlp --version
 mpv --version
 
 # Ejecucion:
-python start.py
+#python start.py
