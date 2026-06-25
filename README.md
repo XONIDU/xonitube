@@ -12,6 +12,7 @@ Este código tiene **únicamente fines educativos y de uso personal**. Los video
 xonitube/
 ├── start.py                 # 🟢 LANZADOR UNIVERSAL (¡SOLO EJECUTA ESTE!)
 ├── xonitube.py              # 🔵 PROGRAMA PRINCIPAL (buscador/reproductor)
+├── INICIAR_XONITUBE.bat     # 🪟 Acceso directo para Windows (ejecutar como admin)
 ├── requirements.txt         # Dependencias del proyecto
 └── README.md                # Este archivo
 ```
@@ -70,6 +71,9 @@ python start.py
 
 El instalador verificará e instalará automáticamente `yt-dlp` (mediante pip) y te guiará para instalar `mpv` manualmente si es necesario.
 
+#### 🚀 Acceso directo (ejecutar como administrador)
+Haz doble clic en `INICIAR_XONITUBE.bat` (solicitará permisos de administrador automáticamente).
+
 #### 📥 Instalación manual paso a paso
 
 1. **Instalar Python 3.6+**  
@@ -92,26 +96,6 @@ El instalador verificará e instalará automáticamente `yt-dlp` (mediante pip) 
    python xonitube.py
    ```
 
-
-### Opción 3 – Comando `xoninstall` (recomendado para futuras herramientas XONI)
-
-Agrega la siguiente función a tu `~/.bashrc` con un solo comando:
-
-```bash
-echo 'xoninstall() { if [ -z "$1" ]; then echo "Uso: xoninstall <repo>"; echo "Ej: xoninstall xoniran"; else git clone "https>
-```
-
-Luego simplemente escribe:
-
-```bash
-xoninstall xonitube
-cd xonitube
-pip install -r requisitos.txt
-python start.py
-```
-
----
-
 ### 🍎 macOS
 
 #### ⚡ Instalación automática (recomendada)
@@ -133,8 +117,6 @@ git clone https://github.com/XONIDU/xonitube.git
 cd xonitube
 python3 xonitube.py
 ```
-
----
 
 ## 🎯 **CÓMO USAR XONITUBE**
 
@@ -324,6 +306,7 @@ El programa fuerza tamaño fijo 640x360. Usa la **Opción 4** (descarga + borra)
 - ✅ **Ventana de tamaño fijo** para evitar lag
 - ✅ Soporta **9 calidades diferentes** (desde peor hasta solo audio)
 - ✅ Archivos temporales se eliminan automáticamente
+- ✅ Incluye `INICIAR_XONITUBE.bat` para Windows (ejecutar como administrador)
 
 ## 🔄 **ACTUALIZAR XONITUBE**
 
@@ -348,8 +331,8 @@ python3 start.py
 ║   • Opción 4: descarga, reproduce y borra               ║
 ║   • Instalación automática                              ║
 ║   • Sin lag, sin ocupar espacio                         ║
+║   • Windows .bat incluido                               ║
 ╚══════════════════════════════════════════════════════════╝
 ```
 
-**XONIDU** - Enseñando automatización, construyendo conocimiento
-
+**XONIDU** - Automatización, construyendo conocimiento
