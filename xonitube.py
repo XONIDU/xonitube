@@ -241,7 +241,7 @@ class XONITUBE:
         print("  3. Solo descargar (guarda permanentemente)")
         print("  4. Descargar + Reproducir + BORRAR (OPTIMO para 1GB RAM)")
         print("-"*50)
-        print("💡 RECOMENDADO: Opcion 4 (descarga, reproduce y borra)")
+        print("RECOMENDADO: Opcion 4 (descarga, reproduce y borra)")
         print("   - Menos lag que streaming")
         print("   - No ocupa espacio en disco")
         print("   - Ideal para 1GB RAM")
